@@ -17,9 +17,9 @@
  */
 
 //#include "../include/main.h"
-//#include "../include/GPIO_SS.h"
-#include "../include/GPIO_SS.h"
 
+#include "../include/GPIO_SS.h"
+#include "../include/BB_Setup.h"
 
 #include <stdint.h>
 #include <unistd.h>
@@ -118,87 +118,8 @@ static void transfer(int fd){
  ****************************************************************/
  int main(void)
 { 
+	Default_Setup_GPIO_BB();
 
-	gpio_export(GPIO_SPI_CS_Ch1);
-	gpio_export(GPIO_SPI_CS_Ch2);
-	gpio_export(GPIO_SPI_CS_Ch3);
-	gpio_export(GPIO_SPI_INT_Ch1);
-	gpio_export(GPIO_SPI_INT_Ch2);
-	gpio_export(GPIO_SPI_INT_Ch3);
-	gpio_export(GPIO_SPI_CS_Disp);
-	gpio_export(GPIO_SPI_Reset_Ch1);
-	gpio_export(GPIO_SPI_Reset_Ch2);
-	gpio_export(GPIO_SPI_Reset_Ch3);
-	gpio_export(GPIO_SPI_CS_Col);
-	printf("gpio_export SUCCESS!\n");
-
-	gpio_set_direction(GPIO_SPI_CS_Ch1, OUTPUT_PIN);
-	gpio_set_direction(GPIO_SPI_CS_Ch2, OUTPUT_PIN);
-	gpio_set_direction(GPIO_SPI_CS_Ch3, OUTPUT_PIN);
-	gpio_set_direction(GPIO_SPI_INT_Ch1, INPUT_PIN);
-	gpio_set_direction(GPIO_SPI_INT_Ch2, INPUT_PIN);
-	gpio_set_direction(GPIO_SPI_INT_Ch3, INPUT_PIN);
-	gpio_set_direction(GPIO_SPI_CS_Disp, OUTPUT_PIN);
-	gpio_set_direction(GPIO_SPI_Reset_Ch1, OUTPUT_PIN);
-	gpio_set_direction(GPIO_SPI_Reset_Ch2, OUTPUT_PIN);
-	gpio_set_direction(GPIO_SPI_Reset_Ch3, OUTPUT_PIN);
-	gpio_set_direction(GPIO_SPI_CS_Col, OUTPUT_PIN);
-	printf("gpio_set_direction SUCCESS!\n");
-
-	gpio_set_edge(GPIO_SPI_INT_Ch1, "rising");
-	gpio_set_edge(GPIO_SPI_INT_Ch2, "rising");
-	gpio_set_edge(GPIO_SPI_INT_Ch3, "rising");
-	printf("gpio_set_edge SUCCESS!\n");
-
-
-	int fd_GPIO_SPI_CS_Ch1;
-	int fd_GPIO_SPI_CS_Ch2;
-	int fd_GPIO_SPI_CS_Ch3;
-	int fd_GPIO_SPI_INT_Ch1;
-	int fd_GPIO_SPI_INT_Ch2;
-	int fd_GPIO_SPI_INT_Ch3;
-	int fd_GPIO_SPI_CS_Disp;
-	int fd_GPIO_SPI_Reset_Ch1;
-	int fd_GPIO_SPI_Reset_Ch2;
-	int fd_GPIO_SPI_Reset_Ch3;
-	int fd_GPIO_SPI_CS_Col;
-
-	fd_GPIO_SPI_CS_Ch1 = gpio_fd_open_R_W(GPIO_SPI_CS_Ch1);
-	fd_GPIO_SPI_CS_Ch2 = gpio_fd_open_R_W(GPIO_SPI_CS_Ch2);
-	fd_GPIO_SPI_CS_Ch3 = gpio_fd_open_R_W(GPIO_SPI_CS_Ch3);
-
-	fd_GPIO_SPI_INT_Ch1 = gpio_fd_open_R_O(GPIO_SPI_INT_Ch1);
-	fd_GPIO_SPI_INT_Ch2 = gpio_fd_open_R_O(GPIO_SPI_INT_Ch2);
-	fd_GPIO_SPI_INT_Ch3 = gpio_fd_open_R_O(GPIO_SPI_INT_Ch3);
-
-	fd_GPIO_SPI_CS_Disp = gpio_fd_open_R_W(GPIO_SPI_CS_Disp);
-	fd_GPIO_SPI_Reset_Ch1 = gpio_fd_open_R_W(GPIO_SPI_Reset_Ch1);
-	fd_GPIO_SPI_Reset_Ch2 = gpio_fd_open_R_W(GPIO_SPI_Reset_Ch2);
-	fd_GPIO_SPI_Reset_Ch3 = gpio_fd_open_R_W(GPIO_SPI_Reset_Ch3);
-	fd_GPIO_SPI_CS_Col = gpio_fd_open_R_W(GPIO_SPI_CS_Col);
-
-	gpio_set_value(GPIO_SPI_CS_Ch1, HIGHT , fd_GPIO_SPI_CS_Ch1 );
-	gpio_set_value(GPIO_SPI_CS_Ch2, HIGHT , fd_GPIO_SPI_CS_Ch2 );
-	gpio_set_value(GPIO_SPI_CS_Ch3, HIGHT , fd_GPIO_SPI_CS_Ch3 );
-	gpio_set_value(GPIO_SPI_CS_Disp, HIGHT , fd_GPIO_SPI_CS_Disp );
-	gpio_set_value(GPIO_SPI_Reset_Ch1, HIGHT , fd_GPIO_SPI_Reset_Ch1 );
-	gpio_set_value(GPIO_SPI_Reset_Ch2, HIGHT , fd_GPIO_SPI_Reset_Ch2 );
-	gpio_set_value(GPIO_SPI_Reset_Ch3, HIGHT , fd_GPIO_SPI_Reset_Ch3 );
-	gpio_set_value(GPIO_SPI_CS_Col, HIGHT , fd_GPIO_SPI_CS_Col );
-
-	//gpio_fd_close(fd_GPIO_SPI_CS_Ch1);
-	gpio_fd_close(fd_GPIO_SPI_CS_Ch2);
-	gpio_fd_close(fd_GPIO_SPI_CS_Ch3);
-	//gpio_fd_close(fd_GPIO_SPI_INT_Ch1);
-	gpio_fd_close(fd_GPIO_SPI_INT_Ch2);
-	gpio_fd_close(fd_GPIO_SPI_INT_Ch3);
-	gpio_fd_close(fd_GPIO_SPI_CS_Disp);
-	gpio_fd_close(fd_GPIO_SPI_Reset_Ch1);
-	gpio_fd_close(fd_GPIO_SPI_Reset_Ch2);
-	gpio_fd_close(fd_GPIO_SPI_Reset_Ch3);
-	gpio_fd_close(fd_GPIO_SPI_CS_Col);
-
-	printf("gpio_set_value SUCCESS!\n");
 	printf("sleep 10 second\n");
 	sleep(10);
 	int check;
@@ -287,5 +208,87 @@ static void transfer(int fd){
 
 	 return EXIT_SUCCESS;
 }
+/*
+ *
+	gpio_export(GPIO_SPI_CS_Ch1);
+	gpio_export(GPIO_SPI_CS_Ch2);
+	gpio_export(GPIO_SPI_CS_Ch3);
+	gpio_export(GPIO_SPI_INT_Ch1);
+	gpio_export(GPIO_SPI_INT_Ch2);
+	gpio_export(GPIO_SPI_INT_Ch3);
+	gpio_export(GPIO_SPI_CS_Disp);
+	gpio_export(GPIO_SPI_Reset_Ch1);
+	gpio_export(GPIO_SPI_Reset_Ch2);
+	gpio_export(GPIO_SPI_Reset_Ch3);
+	gpio_export(GPIO_SPI_CS_Col);
+	printf("gpio_export SUCCESS!\n");
 
+	gpio_set_direction(GPIO_SPI_CS_Ch1, OUTPUT_PIN);
+	gpio_set_direction(GPIO_SPI_CS_Ch2, OUTPUT_PIN);
+	gpio_set_direction(GPIO_SPI_CS_Ch3, OUTPUT_PIN);
+	gpio_set_direction(GPIO_SPI_INT_Ch1, INPUT_PIN);
+	gpio_set_direction(GPIO_SPI_INT_Ch2, INPUT_PIN);
+	gpio_set_direction(GPIO_SPI_INT_Ch3, INPUT_PIN);
+	gpio_set_direction(GPIO_SPI_CS_Disp, OUTPUT_PIN);
+	gpio_set_direction(GPIO_SPI_Reset_Ch1, OUTPUT_PIN);
+	gpio_set_direction(GPIO_SPI_Reset_Ch2, OUTPUT_PIN);
+	gpio_set_direction(GPIO_SPI_Reset_Ch3, OUTPUT_PIN);
+	gpio_set_direction(GPIO_SPI_CS_Col, OUTPUT_PIN);
+	printf("gpio_set_direction SUCCESS!\n");
+
+	gpio_set_edge(GPIO_SPI_INT_Ch1, "rising");
+	gpio_set_edge(GPIO_SPI_INT_Ch2, "rising");
+	gpio_set_edge(GPIO_SPI_INT_Ch3, "rising");
+	printf("gpio_set_edge SUCCESS!\n");
+
+
+	int fd_GPIO_SPI_CS_Ch1;
+	int fd_GPIO_SPI_CS_Ch2;
+	int fd_GPIO_SPI_CS_Ch3;
+	int fd_GPIO_SPI_INT_Ch1;
+	int fd_GPIO_SPI_INT_Ch2;
+	int fd_GPIO_SPI_INT_Ch3;
+	int fd_GPIO_SPI_CS_Disp;
+	int fd_GPIO_SPI_Reset_Ch1;
+	int fd_GPIO_SPI_Reset_Ch2;
+	int fd_GPIO_SPI_Reset_Ch3;
+	int fd_GPIO_SPI_CS_Col;
+
+	fd_GPIO_SPI_CS_Ch1 = gpio_fd_open_R_W(GPIO_SPI_CS_Ch1);
+	fd_GPIO_SPI_CS_Ch2 = gpio_fd_open_R_W(GPIO_SPI_CS_Ch2);
+	fd_GPIO_SPI_CS_Ch3 = gpio_fd_open_R_W(GPIO_SPI_CS_Ch3);
+
+	fd_GPIO_SPI_INT_Ch1 = gpio_fd_open_R_O(GPIO_SPI_INT_Ch1);
+	fd_GPIO_SPI_INT_Ch2 = gpio_fd_open_R_O(GPIO_SPI_INT_Ch2);
+	fd_GPIO_SPI_INT_Ch3 = gpio_fd_open_R_O(GPIO_SPI_INT_Ch3);
+
+	fd_GPIO_SPI_CS_Disp = gpio_fd_open_R_W(GPIO_SPI_CS_Disp);
+	fd_GPIO_SPI_Reset_Ch1 = gpio_fd_open_R_W(GPIO_SPI_Reset_Ch1);
+	fd_GPIO_SPI_Reset_Ch2 = gpio_fd_open_R_W(GPIO_SPI_Reset_Ch2);
+	fd_GPIO_SPI_Reset_Ch3 = gpio_fd_open_R_W(GPIO_SPI_Reset_Ch3);
+	fd_GPIO_SPI_CS_Col = gpio_fd_open_R_W(GPIO_SPI_CS_Col);
+
+	gpio_set_value(GPIO_SPI_CS_Ch1, HIGHT , fd_GPIO_SPI_CS_Ch1 );
+	gpio_set_value(GPIO_SPI_CS_Ch2, HIGHT , fd_GPIO_SPI_CS_Ch2 );
+	gpio_set_value(GPIO_SPI_CS_Ch3, HIGHT , fd_GPIO_SPI_CS_Ch3 );
+	gpio_set_value(GPIO_SPI_CS_Disp, HIGHT , fd_GPIO_SPI_CS_Disp );
+	gpio_set_value(GPIO_SPI_Reset_Ch1, HIGHT , fd_GPIO_SPI_Reset_Ch1 );
+	gpio_set_value(GPIO_SPI_Reset_Ch2, HIGHT , fd_GPIO_SPI_Reset_Ch2 );
+	gpio_set_value(GPIO_SPI_Reset_Ch3, HIGHT , fd_GPIO_SPI_Reset_Ch3 );
+	gpio_set_value(GPIO_SPI_CS_Col, HIGHT , fd_GPIO_SPI_CS_Col );
+
+	//gpio_fd_close(fd_GPIO_SPI_CS_Ch1);
+	gpio_fd_close(fd_GPIO_SPI_CS_Ch2);
+	gpio_fd_close(fd_GPIO_SPI_CS_Ch3);
+	//gpio_fd_close(fd_GPIO_SPI_INT_Ch1);
+	gpio_fd_close(fd_GPIO_SPI_INT_Ch2);
+	gpio_fd_close(fd_GPIO_SPI_INT_Ch3);
+	gpio_fd_close(fd_GPIO_SPI_CS_Disp);
+	gpio_fd_close(fd_GPIO_SPI_Reset_Ch1);
+	gpio_fd_close(fd_GPIO_SPI_Reset_Ch2);
+	gpio_fd_close(fd_GPIO_SPI_Reset_Ch3);
+	gpio_fd_close(fd_GPIO_SPI_CS_Col);
+
+	printf("gpio_set_value SUCCESS!\n");
+ */
 

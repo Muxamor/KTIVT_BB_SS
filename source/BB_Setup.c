@@ -10,9 +10,13 @@
  */
 #include "../include/BB_Setup.h"
 #include "../include/GPIO_SS.h"
+#include <stdio.h>
 
 
-int Setup_GPIO_BB (void){
+
+int Default_Setup_GPIO_BB (void){
+
+
 	/*int i;
 	int size_mass;
 	unsigned int GPIO_PIN_NUMBER [] = {GPIO_SPI_CS_Ch1,GPIO_SPI_CS_Ch2,GPIO_SPI_CS_Ch3,GPIO_SPI_CS_Disp,GPIO_SPI_CS_Col,
@@ -65,18 +69,6 @@ int Setup_GPIO_BB (void){
 	printf("GPIO set edge - SUCCESS!\n");
 
 //Open GPIO file to operate gpio.
-	int fd_GPIO_SPI_CS_Ch1;
-	int fd_GPIO_SPI_CS_Ch2;
-	int fd_GPIO_SPI_CS_Ch3;
-	int fd_GPIO_SPI_CS_Disp;
-	int fd_GPIO_SPI_CS_Col;
-	int fd_GPIO_Sync_Ch1_Ch2_Ch3;
-	int fd_GPIO_SPI_INT_Ch1;
-	int fd_GPIO_SPI_INT_Ch2;
-	int fd_GPIO_SPI_INT_Ch3;
-	int fd_GPIO_SPI_Reset_Ch1;
-	int fd_GPIO_SPI_Reset_Ch2;
-	int fd_GPIO_SPI_Reset_Ch3;
 
 
 	fd_GPIO_SPI_CS_Ch1 = gpio_fd_open_R_W(GPIO_SPI_CS_Ch1);
@@ -103,7 +95,7 @@ int Setup_GPIO_BB (void){
 	gpio_set_value(GPIO_SPI_Reset_Ch1, HIGHT , fd_GPIO_SPI_Reset_Ch1 );
 	gpio_set_value(GPIO_SPI_Reset_Ch2, HIGHT , fd_GPIO_SPI_Reset_Ch2 );
 	gpio_set_value(GPIO_SPI_Reset_Ch3, HIGHT , fd_GPIO_SPI_Reset_Ch3 );
-
+	printf("Set default value gpio - SUCCESS!\n");
 
 
    /*
@@ -119,6 +111,7 @@ int Setup_GPIO_BB (void){
 	gpio_fd_close(fd_GPIO_SPI_Reset_Ch3);
 	gpio_fd_close(fd_GPIO_SPI_CS_Col);
 	*/
+	return 0;
 
 
 }

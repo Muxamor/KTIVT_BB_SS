@@ -96,7 +96,7 @@ int gpio_set_direction(unsigned int gpio, enum PIN_DIRECTION flag_direction ){
 }
 
 /******************************************************
- * Gpio set direction out or input
+ * Gpio set edge out or input
  *****************************************************/
 
 int gpio_set_edge(unsigned int gpio, char *edge){
@@ -113,7 +113,7 @@ int gpio_set_edge(unsigned int gpio, char *edge){
 	}
 
 
-		write(fd, edge, strlen(edge)+1);
+	write(fd, edge, strlen(edge)+1);
 
 
 	close(fd);
@@ -122,7 +122,7 @@ int gpio_set_edge(unsigned int gpio, char *edge){
 }
 
 /******************************************************
- * Gpio set direction value
+ * Gpio set  value
  *****************************************************/
 int gpio_set_value(unsigned int gpio, enum PIN_VALUE value, int fd ){
 
@@ -143,7 +143,7 @@ int gpio_set_value(unsigned int gpio, enum PIN_VALUE value, int fd ){
 }
 
 /******************************************************
- * Gpio open file value Read Only
+ * Gpio settings for interrupts
  *****************************************************/
 int gpio_get_value_interrupt(int fd, int timeout){
 
@@ -172,7 +172,7 @@ int gpio_get_value_interrupt(int fd, int timeout){
 
 
 /******************************************************
- * Gpio open file value Write Only
+ * Gpio open file  Write Read
  *****************************************************/
 int gpio_fd_open_R_W(unsigned int gpio){
 
@@ -183,7 +183,7 @@ int gpio_fd_open_R_W(unsigned int gpio){
 
 	fd=open(buf, O_RDWR);
 	if (fd<0){
-		perror("gpio/value write only");
+		perror("gpio/write read");
 		return fd;
 	}
 
@@ -191,7 +191,7 @@ int gpio_fd_open_R_W(unsigned int gpio){
 }
 
 /******************************************************
- * Gpio open file value Read Only
+ * Gpio open file Read Only
  *****************************************************/
 int gpio_fd_open_R_O(unsigned int gpio){
 
@@ -203,7 +203,7 @@ int gpio_fd_open_R_O(unsigned int gpio){
 
 	fd=open(buf, O_RDONLY );
 	if (fd<0){
-		perror("gpio/value read only");
+		perror("gpio/read only");
 		return fd;
 	}
 
