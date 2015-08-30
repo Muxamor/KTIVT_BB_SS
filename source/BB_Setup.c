@@ -15,86 +15,57 @@
 
 
 int Default_Setup_GPIO_BB (void){
-
-
-	/*int i;
-	int size_mass;
-	unsigned int GPIO_PIN_NUMBER [] = {GPIO_SPI_CS_Ch1,GPIO_SPI_CS_Ch2,GPIO_SPI_CS_Ch3,GPIO_SPI_CS_Disp,GPIO_SPI_CS_Col,
-			 	 	 	 	 	 	 	GPIO_Sync_Ch1_Ch2_Ch3,
-										GPIO_SPI_INT_Ch1, GPIO_SPI_INT_Ch2, GPIO_SPI_INT_Ch3,
-										GPIO_SPI_Reset_Ch1, GPIO_SPI_Reset_Ch2, GPIO_SPI_Reset_Ch3};
-
-	 size_mass = (sizeof(GPIO_PIN_NUMBER) / sizeof(GPIO_PIN_NUMBER[0]));
-
-	 for (i=0; i< size_mass ;i++){
-
-	  gpio_export(GPIO_PIN_NUMBER[i]);
-	 }*/
+	int i;
 
 //Export GPIO to the Linux sys.
-	gpio_export(GPIO_SPI_CS_Ch1);
-	gpio_export(GPIO_SPI_CS_Ch2);
-	gpio_export(GPIO_SPI_CS_Ch3);
-	gpio_export(GPIO_SPI_CS_Disp);
-	gpio_export(GPIO_SPI_CS_Col);
-	gpio_export(GPIO_Sync_Ch1_Ch2_Ch3);
-	gpio_export(GPIO_SPI_Reset_Ch1);
-	gpio_export(GPIO_SPI_Reset_Ch2);
-	gpio_export(GPIO_SPI_Reset_Ch3);
-	gpio_export(GPIO_SPI_INT_Ch1);
-	gpio_export(GPIO_SPI_INT_Ch2);
-	gpio_export(GPIO_SPI_INT_Ch3);
+	for (i=0; i< GPIO_out_MAX; i++){
+		gpio_export(gpio_output_pin_numbers[i]);
+	}
+	for (i=0; i< GPIO_in_MAX; i++){
+		gpio_export(gpio_input_pin_numbers[i]);
+	}
 	printf("GPIO  export - SUCCESS!\n");
 
 
 //Set direction for GPIO to the Linux sys.
-	gpio_set_direction(GPIO_SPI_CS_Ch1, OUTPUT_PIN);
-	gpio_set_direction(GPIO_SPI_CS_Ch2, OUTPUT_PIN);
-	gpio_set_direction(GPIO_SPI_CS_Ch3, OUTPUT_PIN);
-	gpio_set_direction(GPIO_SPI_CS_Disp, OUTPUT_PIN);
-	gpio_set_direction(GPIO_SPI_CS_Col, OUTPUT_PIN);
-	gpio_set_direction(GPIO_Sync_Ch1_Ch2_Ch3, OUTPUT_PIN);
-	gpio_set_direction(GPIO_SPI_Reset_Ch1, OUTPUT_PIN);
-	gpio_set_direction(GPIO_SPI_Reset_Ch2, OUTPUT_PIN);
-	gpio_set_direction(GPIO_SPI_Reset_Ch3, OUTPUT_PIN);
-	gpio_set_direction(GPIO_SPI_INT_Ch1, INPUT_PIN);
-	gpio_set_direction(GPIO_SPI_INT_Ch2, INPUT_PIN);
-	gpio_set_direction(GPIO_SPI_INT_Ch3, INPUT_PIN);
+	for (i=0; i< GPIO_out_MAX; i++){
+		gpio_set_direction(gpio_output_pin_numbers[i],OUTPUT_PIN);
+	}
+	for (i=0; i< GPIO_in_MAX; i++){
+		gpio_set_direction(gpio_input_pin_numbers[i],INPUT_PIN);
+	}
 	printf("GPIO set direction - SUCCESS!\n");
 
-// Set edge to implementation interrupts for input GPIO.
-	gpio_set_edge(GPIO_SPI_INT_Ch1, "rising");
-	gpio_set_edge(GPIO_SPI_INT_Ch2, "rising");
-	gpio_set_edge(GPIO_SPI_INT_Ch3, "rising");
+
+/// Set edge to implementation interrupts for input GPIO
+	for (i=0; i< GPIO_in_MAX; i++){
+		gpio_set_edge(gpio_input_pin_numbers[i],"rising");
+	}
 	printf("GPIO set edge - SUCCESS!\n");
 
+
 //Open GPIO file to operate gpio.
+	for (i=0; i< GPIO_out_MAX; i++){
+		fd_GPIO_pin_output[i]=gpio_fd_open_R_W(gpio_output_pin_numbers[i]);
+	}
+	for (i=0; i< GPIO_in_MAX; i++){
+		fd_GPIO_pin_input[i]=gpio_fd_open_R_O(gpio_input_pin_numbers[i]);
+	}
 
-
-	fd_GPIO_SPI_CS_Ch1 = gpio_fd_open_R_W(GPIO_SPI_CS_Ch1);
-	fd_GPIO_SPI_CS_Ch2 = gpio_fd_open_R_W(GPIO_SPI_CS_Ch2);
-	fd_GPIO_SPI_CS_Ch3 = gpio_fd_open_R_W(GPIO_SPI_CS_Ch3);
-	fd_GPIO_SPI_CS_Disp = gpio_fd_open_R_W(GPIO_SPI_CS_Disp);
-	fd_GPIO_SPI_CS_Col = gpio_fd_open_R_W(GPIO_SPI_CS_Col);
-	fd_GPIO_Sync_Ch1_Ch2_Ch3 = gpio_fd_open_R_W(GPIO_Sync_Ch1_Ch2_Ch3);
-	fd_GPIO_SPI_Reset_Ch1 = gpio_fd_open_R_W(GPIO_SPI_Reset_Ch1);
-	fd_GPIO_SPI_Reset_Ch2 = gpio_fd_open_R_W(GPIO_SPI_Reset_Ch2);
-	fd_GPIO_SPI_Reset_Ch3 = gpio_fd_open_R_W(GPIO_SPI_Reset_Ch3);
-	fd_GPIO_SPI_INT_Ch1 = gpio_fd_open_R_O(GPIO_SPI_INT_Ch1);
-	fd_GPIO_SPI_INT_Ch2 = gpio_fd_open_R_O(GPIO_SPI_INT_Ch2);
-	fd_GPIO_SPI_INT_Ch3 = gpio_fd_open_R_O(GPIO_SPI_INT_Ch3);
 	printf("Get FD - SUCCESS!\n");
 
+
 // Set default value for output GPIO.
-	gpio_set_value(GPIO_SPI_CS_Ch1, HIGHT , fd_GPIO_SPI_CS_Ch1 );
-	gpio_set_value(GPIO_SPI_CS_Ch2, HIGHT , fd_GPIO_SPI_CS_Ch2 );
-	gpio_set_value(GPIO_SPI_CS_Ch3, HIGHT , fd_GPIO_SPI_CS_Ch3 );
-	gpio_set_value(GPIO_SPI_CS_Disp, HIGHT , fd_GPIO_SPI_CS_Disp );
-	gpio_set_value(GPIO_SPI_CS_Col, HIGHT , fd_GPIO_SPI_CS_Col );
-	gpio_set_value(GPIO_Sync_Ch1_Ch2_Ch3, HIGHT , fd_GPIO_Sync_Ch1_Ch2_Ch3 ); // Проверить возможно  нужно по умолчанию ставить в ноль!!!!
-	gpio_set_value(GPIO_SPI_Reset_Ch1, HIGHT , fd_GPIO_SPI_Reset_Ch1 );
-	gpio_set_value(GPIO_SPI_Reset_Ch2, HIGHT , fd_GPIO_SPI_Reset_Ch2 );
-	gpio_set_value(GPIO_SPI_Reset_Ch3, HIGHT , fd_GPIO_SPI_Reset_Ch3 );
+	gpio_set_value(gpio_output_pin_numbers[GPIO_SPI_CS_Ch1], HIGHT , fd_GPIO_pin_output[GPIO_SPI_CS_Ch1] );
+	gpio_set_value(gpio_output_pin_numbers[GPIO_SPI_CS_Ch2], HIGHT , fd_GPIO_pin_output[GPIO_SPI_CS_Ch2] );
+	gpio_set_value(gpio_output_pin_numbers[GPIO_SPI_CS_Ch3], HIGHT , fd_GPIO_pin_output[GPIO_SPI_CS_Ch3] );
+	gpio_set_value(gpio_output_pin_numbers[GPIO_SPI_CS_Disp], HIGHT , fd_GPIO_pin_output[GPIO_SPI_CS_Disp] );
+	gpio_set_value(gpio_output_pin_numbers[GPIO_SPI_CS_Col], HIGHT , fd_GPIO_pin_output[GPIO_SPI_CS_Col] );
+	gpio_set_value(gpio_output_pin_numbers[GPIO_Sync_Ch1_Ch2_Ch3], HIGHT , fd_GPIO_pin_output[GPIO_Sync_Ch1_Ch2_Ch3] );// Проверить возможно  нужно по умолчанию ставить в ноль!!!!
+	gpio_set_value(gpio_output_pin_numbers[GPIO_SPI_Reset_Ch1], HIGHT , fd_GPIO_pin_output[GPIO_SPI_Reset_Ch1] );
+	gpio_set_value(gpio_output_pin_numbers[GPIO_SPI_Reset_Ch2], HIGHT , fd_GPIO_pin_output[GPIO_SPI_Reset_Ch2] );
+	gpio_set_value(gpio_output_pin_numbers[GPIO_SPI_Reset_Ch3], HIGHT , fd_GPIO_pin_output[GPIO_SPI_Reset_Ch3] );
+
 	printf("Set default value gpio - SUCCESS!\n");
 
 

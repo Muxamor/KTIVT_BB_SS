@@ -123,7 +123,7 @@ static void transfer(int fd){
 	printf("sleep 10 second\n");
 	sleep(10);
 	int check;
-	check= gpio_get_value_interrupt(fd_GPIO_SPI_INT_Ch1, 0);
+	check= gpio_get_value_interrupt(gpio_input_pin_numbers[GPIO_SPI_INT_Ch1], 0);
 
 	if(check==-1){
 				printf("interrupt no happen\n");
@@ -133,7 +133,7 @@ static void transfer(int fd){
 			}
 	printf("sleep 10 second\n");
 	sleep(10);
-	check= gpio_get_value_interrupt(fd_GPIO_SPI_INT_Ch1, 100);
+	check= gpio_get_value_interrupt(gpio_input_pin_numbers[GPIO_SPI_INT_Ch1], 0);
 
 		if(check==-1){
 			printf("interrupt no happen \n");
@@ -194,16 +194,16 @@ static void transfer(int fd){
 		printf("bits per word: %d\n", bits);
 		printf("max speed: %d Hz (%d KHz)\n", speed, speed/1000);
 
-		gpio_set_value(GPIO_SPI_CS_Ch1, LOW , fd_GPIO_SPI_CS_Ch1 );
+		gpio_set_value(gpio_output_pin_numbers[GPIO_SPI_CS_Ch1], LOW , fd_GPIO_pin_output[GPIO_SPI_CS_Ch1] );
 
 
 
 		transfer(fd);
 
-		gpio_set_value(GPIO_SPI_CS_Ch1, HIGHT , fd_GPIO_SPI_CS_Ch1 );
+		gpio_set_value(gpio_output_pin_numbers[GPIO_SPI_CS_Ch1], HIGHT , fd_GPIO_pin_output[GPIO_SPI_CS_Ch1] );
 
 		close(fd);
-		gpio_fd_close(fd_GPIO_SPI_CS_Ch1);
+		gpio_fd_close(fd_GPIO_pin_output[GPIO_SPI_CS_Ch1]);
 
 
 	 return EXIT_SUCCESS;
