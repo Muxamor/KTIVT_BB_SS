@@ -130,8 +130,9 @@ static void transfer(int fd){
 	printf("sleep 10 second\n");
 	sleep(10);
 	int check;
+
 	//gpio_input_pin_numbers[GPIO_SPI_INT_Ch1]
-	check= gpio_get_value_interrupt(7, 100);
+	check= gpio_get_value_interrupt(7, 0);
 
 	if(check==-1){
 				printf("interrupt no happen\n");
@@ -141,7 +142,7 @@ static void transfer(int fd){
 			}
 	printf("sleep 10 second\n");
 	sleep(10);
-	check= gpio_get_value_interrupt(7,100);
+	check= gpio_get_value_interrupt(7,0);
 
 		if(check==-1){
 			printf("interrupt no happen \n");
