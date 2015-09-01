@@ -17,41 +17,32 @@
  */
 
 //#include "../include/main.h"
-
-#include "../include/GPIO_SS.h"
-#include "../include/BB_Setup.h"
-
-#include <stdint.h>
-#include <unistd.h>
-#include <getopt.h>
-#include <sys/ioctl.h>
-#include <linux/types.h>
-#include <linux/spi/spidev.h>
-
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <errno.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <poll.h>
+#include <linux/spi/spidev.h>
+#include "../include/main.h"
+#include "../include/GPIO_SS.h"
+#include "../include/SPI_SS.h"
+#include "../include/BB_Setup.h"
 
+//#include <stdint.h>
+//#include <unistd.h>
+//#include <getopt.h>
+//#include <sys/ioctl.h>
+//#include <linux/types.h>
+//#include <string.h>
+//#include <errno.h>
+//#include <unistd.h>
+//#include <fcntl.h>
+//#include <poll.h>
 
-
-#define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
-
-static void pabort(const char *s)
+/*
+ *
+ * static void pabort(const char *s)
 {
 	perror(s);
 	abort();
 }
-
-static const char *device = "/dev/spidev1.0";
-static uint8_t mode=SPI_MODE_1;
-static uint8_t bits = 16;
-static uint32_t speed = 18000000;
-static uint16_t delay = 0;
-
 
 static void transfer(int fd){
 	int ret;
@@ -80,7 +71,7 @@ static void transfer(int fd){
 				puts("");
 			printf("%.4X ", rx1[ret]);
 		}
-
+*/
 
 /*
 		uint16_t tx2[] = {
@@ -108,22 +99,39 @@ static void transfer(int fd){
 					printf("%.2X ", rx2[ret]);
 				}
 */
-		puts("");
-}
+		//puts("");
+//}
 
 
   
 /****************************************************************
- * Our main function with a little more than "Hello world!" only
+ * Our main function
  ****************************************************************/
  int main(void)
 { 
-	Default_Setup_GPIO_BB();
+	/*Default_Setup_GPIO_BB();
+
+	fd_SPI_BB = spi_device_open("/dev/spidev1.0");
+	set_spi_settings(fd_SPI_BB, SPI_MODE_1, 16 , 16000000);
+	uint16_t tx_buf[] = {0x0102,0x0304};
+	uint16_t rx_buf[ARRAY_SIZE(tx_buf)] = {};
+	spi_transfer (fd_SPI_BB, GPIO_SPI_CS_Ch1 ,tx_buf, rx_buf, sizeof(tx_buf), 0);
+	int i;
+	for (i = 0; i < ARRAY_SIZE(tx_buf); i++){
+		printf("0x%.4X ", rx_buf[i]);
+	}
+	*/
+	gpio_export(7);
+	gpio_set_direction(7, INPUT_PIN);
+	gpio_set_edge(7, "rising");
+	int fd_GPIO_SPI_INT_Ch1;
+	fd_GPIO_SPI_INT_Ch1 = gpio_fd_open_R_O(7);
 
 	printf("sleep 10 second\n");
 	sleep(10);
 	int check;
-	check= gpio_get_value_interrupt(gpio_input_pin_numbers[GPIO_SPI_INT_Ch1], 0);
+	//gpio_input_pin_numbers[GPIO_SPI_INT_Ch1]
+	check= gpio_get_value_interrupt(7, 100);
 
 	if(check==-1){
 				printf("interrupt no happen\n");
@@ -133,7 +141,7 @@ static void transfer(int fd){
 			}
 	printf("sleep 10 second\n");
 	sleep(10);
-	check= gpio_get_value_interrupt(gpio_input_pin_numbers[GPIO_SPI_INT_Ch1], 0);
+	check= gpio_get_value_interrupt(7,100);
 
 		if(check==-1){
 			printf("interrupt no happen \n");
@@ -141,73 +149,25 @@ static void transfer(int fd){
 
 			printf("interrupt happen %d\n", check);
 		}
+	printf("sleep 10 second\n");
+	sleep(10);
+			check= gpio_get_value_interrupt(7, 100);
 
-	// ret;
-	//int fd;
+				if(check==-1){
+					printf("interrupt no happen \n");
+				}else{
 
-	//fd=spi_device_open("/dev/spidev1.0");
-	//set_spi_settings(fd, SPI_MODE_1, 16 , 16000000, 0);
-	//static void transfer(int fd)
-	//{
+					printf("interrupt happen %d\n", check);
+				}
 
-	   int ret = 0;
-		int fd;
-
-		fd = open(device, O_RDWR);
-		if (fd < 0)
-			pabort("can't open device");
-
-		/*
-		 * spi mode
-		 */
-		ret = ioctl(fd, SPI_IOC_WR_MODE, &mode);
-		if (ret == -1)
-			pabort("can't set spi mode");
-
-		ret = ioctl(fd, SPI_IOC_RD_MODE, &mode);
-		if (ret == -1)
-			pabort("can't get spi mode");
-
-		/*
-		 * bits per word
-		 */
-		ret = ioctl(fd, SPI_IOC_WR_BITS_PER_WORD, &bits);
-		if (ret == -1)
-			pabort("can't set bits per word");
-
-		ret = ioctl(fd, SPI_IOC_RD_BITS_PER_WORD, &bits);
-		if (ret == -1)
-			pabort("can't get bits per word");
-
-		/*
-		 * max speed hz
-		 */
-		ret = ioctl(fd, SPI_IOC_WR_MAX_SPEED_HZ, &speed);
-		if (ret == -1)
-			pabort("can't set max speed hz");
-
-		ret = ioctl(fd, SPI_IOC_RD_MAX_SPEED_HZ, &speed);
-		if (ret == -1)
-			pabort("can't get max speed hz");
-
-		printf("spi mode: %d\n", mode);
-		printf("bits per word: %d\n", bits);
-		printf("max speed: %d Hz (%d KHz)\n", speed, speed/1000);
-
-		gpio_set_value(gpio_output_pin_numbers[GPIO_SPI_CS_Ch1], LOW , fd_GPIO_pin_output[GPIO_SPI_CS_Ch1] );
-
-
-
-		transfer(fd);
-
-		gpio_set_value(gpio_output_pin_numbers[GPIO_SPI_CS_Ch1], HIGHT , fd_GPIO_pin_output[GPIO_SPI_CS_Ch1] );
-
-		close(fd);
-		gpio_fd_close(fd_GPIO_pin_output[GPIO_SPI_CS_Ch1]);
+	//close(fd_SPI_BB);
+	//gpio_fd_close(fd_GPIO_pin_output[GPIO_SPI_CS_Ch1]);
 
 
 	 return EXIT_SUCCESS;
 }
+
+
 /*
  *
 	gpio_export(GPIO_SPI_CS_Ch1);

@@ -8,57 +8,53 @@
  * Email: ivan.neskorodev@gmail.com
  *
  */
-/*#include <stdint.h>
-#include <unistd.h>
+
+
+//#include <stdint.h>
+//#include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <getopt.h>
+//#include <getopt.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
-#include <linux/types.h>
+//#include <linux/types.h>
 #include <linux/spi/spidev.h>
+#include "../include/SPI_SS.h"
+#include "../include/GPIO_SS.h"
+#include "../include/BB_Setup.h"
 
-#define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
-
+//#define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
+//#define ARRAY_SIZE_bite(a) (sizeof(a))
 
 ///static const char *device = "/dev/spidev1.0";
 //static uint8_t mode=SPI_MODE_1;
 //static uint8_t bits = 8;
 //static uint32_t speed = 500000;
 //static uint16_t delay = 0;
-/*
-static void transfer(int fd)
-{
+
+int spi_transfer (int fd, uint16_t SPI_channel, uint16_t tx_buffer[], uint16_t rx_buffer[], uint16_t size, uint16_t delay_SPI){
+
 	int ret;
-	uint8_t tx[] = {
-		0x15, 0x00,0x20,0x10,0x20,0x30,0x40,0x40
-	};
 
-	uint8_t rx[ARRAY_SIZE(tx)] = {0, };
+	SPI_trunsfer_struct.tx_buf=(unsigned long)tx_buffer;
+	SPI_trunsfer_struct.rx_buf=(unsigned long)rx_buffer;
+	SPI_trunsfer_struct.len = size;  // Need write quantity of bits in a parcel.
+	SPI_trunsfer_struct.delay_usecs = delay_SPI;
 
-	struct spi_ioc_transfer tr = {
-		.tx_buf = (unsigned long)tx,
-		.rx_buf = (unsigned long)rx,
-		.len = ARRAY_SIZE(tx),
-		.delay_usecs = delay,
-		.speed_hz = speed,
-		.bits_per_word = bits,
-	};
+	gpio_set_value(gpio_output_pin_numbers[SPI_channel], LOW , fd_GPIO_pin_output[SPI_channel] );
 
-	ret = ioctl(fd, SPI_IOC_MESSAGE(1), &tr);
-	if (ret < 1)
-		pabort("can't send spi message");
+	ret = ioctl(fd, SPI_IOC_MESSAGE(1), &SPI_trunsfer_struct);
 
-	for (ret = 0; ret < ARRAY_SIZE(tx); ret++) {
-		if (!(ret % 6))
-			puts("");
-		printf("%.2X ", rx[ret]);
+	gpio_set_value(gpio_output_pin_numbers[SPI_channel], HIGHT  , fd_GPIO_pin_output[SPI_channel] );
+
+	if (ret < 1){
+		return -1;
 	}
-	puts("");
+
+	return 0;
 }
 
-*/
-/*
+
 int spi_device_open(char *device){
 
 	int fd;
@@ -73,12 +69,10 @@ int spi_device_open(char *device){
 }
 
 
-int set_spi_settings(int fd,uint8_t mode,uint8_t bits, uint32_t speed, uint16_t delay){
+int set_spi_settings(int fd, uint8_t mode, uint8_t bits_in_word, uint32_t speed_SPI){
 	int ret = 0;
 
-	/*
-	 * spi mode
-	 *//*
+// Set SPI mode
 	ret = ioctl(fd, SPI_IOC_WR_MODE, &mode);
 	if (ret == -1){
 		perror("can't set spi mode");
@@ -91,50 +85,45 @@ int set_spi_settings(int fd,uint8_t mode,uint8_t bits, uint32_t speed, uint16_t 
 		return EXIT_FAILURE;
 	}
 
-	/*
-	 * bits per word
-	 *//*
-	ret = ioctl(fd, SPI_IOC_WR_BITS_PER_WORD, &bits);
+
+// Set bits per word for SPI
+	ret = ioctl(fd, SPI_IOC_WR_BITS_PER_WORD, &bits_in_word);
 	if (ret == -1){
 		perror("can't set bits per word");
 		return EXIT_FAILURE;
 	}
 
-
-	ret = ioctl(fd, SPI_IOC_RD_BITS_PER_WORD, &bits);
-	if (ret == -1)
+	ret = ioctl(fd, SPI_IOC_RD_BITS_PER_WORD, &bits_in_word);
+	if (ret == -1){
 		perror("can't get bits per word");
 		return EXIT_FAILURE;
 	}
 
+	SPI_trunsfer_struct.bits_per_word=bits_in_word;
 
-	/*
-	 * max speed hz
-	 *//*
-	ret = ioctl(fd, SPI_IOC_WR_MAX_SPEED_HZ, &speed);
+// Set max speed for SPI
+	ret = ioctl(fd, SPI_IOC_WR_MAX_SPEED_HZ, &speed_SPI);
 	if (ret == -1){
 		perror("can't set max speed hz");
 		return EXIT_FAILURE;
 	}
 
-	ret = ioctl(fd, SPI_IOC_RD_MAX_SPEED_HZ, &speed);
-	if (ret == -1)
+	ret = ioctl(fd, SPI_IOC_RD_MAX_SPEED_HZ, &speed_SPI);
+	if (ret == -1){
 		perror("can't get max speed hz");
 		return EXIT_FAILURE;
 	}
 
+	SPI_trunsfer_struct.speed_hz = speed_SPI;
+
+
+
+// Print report of the settings SPI port.
 	printf("spi mode: %d\n", mode);
-	printf("bits per word: %d\n", bits);
-	printf("max speed: %d Hz (%d KHz)\n", speed, speed/1000);
+	printf("bits per word: %d\n", bits_in_word);
+	printf("max speed: %d Hz (%d KHz)\n", speed_SPI, speed_SPI/1000);
 
 	return 0;
 }
 
-	//transfer(fd);
 
-//	close(fd);
-
-//	return ret;
-//}
-
-*/

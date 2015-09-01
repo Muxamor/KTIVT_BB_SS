@@ -51,7 +51,6 @@ int Default_Setup_GPIO_BB (void){
 	for (i=0; i< GPIO_in_MAX; i++){
 		fd_GPIO_pin_input[i]=gpio_fd_open_R_O(gpio_input_pin_numbers[i]);
 	}
-
 	printf("Get FD - SUCCESS!\n");
 
 
@@ -71,18 +70,7 @@ int Default_Setup_GPIO_BB (void){
 
    /*
  	gpio_fd_close(fd_GPIO_SPI_CS_Ch1);
-	gpio_fd_close(fd_GPIO_SPI_CS_Ch2);
-	gpio_fd_close(fd_GPIO_SPI_CS_Ch3);
-	gpio_fd_close(fd_GPIO_SPI_INT_Ch1);
-	gpio_fd_close(fd_GPIO_SPI_INT_Ch2);
-	gpio_fd_close(fd_GPIO_SPI_INT_Ch3);
-	gpio_fd_close(fd_GPIO_SPI_CS_Disp);
-	gpio_fd_close(fd_GPIO_SPI_Reset_Ch1);
-	gpio_fd_close(fd_GPIO_SPI_Reset_Ch2);
-	gpio_fd_close(fd_GPIO_SPI_Reset_Ch3);
-	gpio_fd_close(fd_GPIO_SPI_CS_Col);
+
 	*/
 	return 0;
-
-
 }

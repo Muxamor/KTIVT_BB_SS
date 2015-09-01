@@ -12,6 +12,8 @@
 *                 Constants                         *
 ****************************************************/
 //list for output pins for seismic station KTIVT
+
+
 typedef enum {
 	GPIO_SPI_CS_Ch1,
 	GPIO_SPI_CS_Ch2,
@@ -26,7 +28,7 @@ typedef enum {
 } gpio_name_output_pin;
 
 // Area  with number of pins depends of  gpio_name_output_pin list
-static int gpio_output_pin_numbers[GPIO_out_MAX] = { 115, 117, 48, 49, 86, 89, 65, 70, 71 };
+static unsigned int gpio_output_pin_numbers[GPIO_out_MAX] = { 115, 117, 48, 49, 86, 89, 65, 70, 71 };
 
 
 //list for input pins for seismic station KTIVT
@@ -38,24 +40,12 @@ typedef enum {
 } gpio_name_input_pin;
 
 // Area  with number of pins depends of  gpio_name_input_pin list
-static int gpio_input_pin_numbers[GPIO_in_MAX] = { 7, 26, 27 };
-
-int fd_GPIO_pin_output[ GPIO_out_MAX ];
-int fd_GPIO_pin_input[ GPIO_in_MAX ];
+static unsigned int gpio_input_pin_numbers[GPIO_in_MAX] = { 7, 26, 27 };
 
 
-//	int fd_GPIO_SPI_CS_Ch1;
-//	int fd_GPIO_SPI_CS_Ch2;
-//	int fd_GPIO_SPI_CS_Ch3;
-//	int fd_GPIO_SPI_CS_Disp;
-//	int fd_GPIO_SPI_CS_Col;
-//	int fd_GPIO_Sync_Ch1_Ch2_Ch3;
-//	int fd_GPIO_SPI_INT_Ch1;
-//	int fd_GPIO_SPI_INT_Ch2;
-//	int fd_GPIO_SPI_INT_Ch3;
-//	int fd_GPIO_SPI_Reset_Ch1;
-//	int fd_GPIO_SPI_Reset_Ch2;
-//	int fd_GPIO_SPI_Reset_Ch3;
+// Area for file descriptors of GPIO
+unsigned int fd_GPIO_pin_output[ GPIO_out_MAX ];
+unsigned int fd_GPIO_pin_input[ GPIO_in_MAX ];
 
 
 /***************************************************

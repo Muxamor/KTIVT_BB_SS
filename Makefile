@@ -21,13 +21,16 @@ OBJDIR = $(CURDIR)/object
 # Other dependencies
 DEPS = \
  Makefile \
+ include/main.h\
  include/GPIO_SS.h\
+ include/SPI_SS.h\
  include/BB_Setup.h
 
 # Compiler object files 
 COBJ = \
  $(OBJDIR)/main.o \
  $(OBJDIR)/GPIO_SS.o\
+  $(OBJDIR)/SPI_SS.o\
  $(OBJDIR)/BB_Setup.o
 
 # gcc binaries to use. Write correct path on your system 

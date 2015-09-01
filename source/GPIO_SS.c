@@ -209,6 +209,7 @@ int gpio_fd_open_R_O(unsigned int gpio){
 
 	read(fd, &c, sizeof(c));
 
+
 	return fd;
 }
 
