@@ -21,16 +21,13 @@ OBJDIR = $(CURDIR)/object
 # Other dependencies
 DEPS = \
  Makefile \
- include/main.h\
  include/GPIO_SS.h\
- include/SPI_SS.h\
  include/BB_Setup.h
 
 # Compiler object files 
 COBJ = \
  $(OBJDIR)/main.o \
  $(OBJDIR)/GPIO_SS.o\
-  $(OBJDIR)/SPI_SS.o\
  $(OBJDIR)/BB_Setup.o
 
 # gcc binaries to use. Write correct path on your system 
@@ -40,9 +37,6 @@ LD = "/usr/local/linaro/arm-linux-gnueabihf/bin/arm-linux-gnueabihf-gcc"
 else ifeq ($(OS_SYSTEM),WINDOWS)
 CC = "C:\gcc-linaro\bin\arm-linux-gnueabihf-gcc.exe"
 LD = "C:\gcc-linaro\bin\arm-linux-gnueabihf-gcc.exe"
-else ifeq ($(OS_SYSTEM),ON_BB)
-CC = "gcc"
-LD = "gcc"
 endif
 
 

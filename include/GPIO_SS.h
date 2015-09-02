@@ -35,9 +35,9 @@ int gpio_export(unsigned int gpio);
 int gpio_unexport(unsigned int gpio);
 int gpio_set_direction(unsigned int gpio, enum PIN_DIRECTION flag_direction );
 int gpio_set_edge(unsigned int gpio, char *edge);
-int gpio_set_value(unsigned int gpio, enum PIN_VALUE value, int fd );
+int gpio_set_value( int fd,  enum PIN_VALUE value);
 int gpio_get_value_interrupt(int fd, int timeout);
-int gpio_fd_open_W_O(unsigned int gpio);
+int gpio_fd_open_R_W(unsigned int gpio);
 int gpio_fd_open_R_O(unsigned int gpio);
 int gpio_fd_close(int fd);
 

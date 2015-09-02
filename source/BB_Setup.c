@@ -55,15 +55,15 @@ int Default_Setup_GPIO_BB (void){
 
 
 // Set default value for output GPIO.
-	gpio_set_value(gpio_output_pin_numbers[GPIO_SPI_CS_Ch1], HIGHT , fd_GPIO_pin_output[GPIO_SPI_CS_Ch1] );
-	gpio_set_value(gpio_output_pin_numbers[GPIO_SPI_CS_Ch2], HIGHT , fd_GPIO_pin_output[GPIO_SPI_CS_Ch2] );
-	gpio_set_value(gpio_output_pin_numbers[GPIO_SPI_CS_Ch3], HIGHT , fd_GPIO_pin_output[GPIO_SPI_CS_Ch3] );
-	gpio_set_value(gpio_output_pin_numbers[GPIO_SPI_CS_Disp], HIGHT , fd_GPIO_pin_output[GPIO_SPI_CS_Disp] );
-	gpio_set_value(gpio_output_pin_numbers[GPIO_SPI_CS_Col], HIGHT , fd_GPIO_pin_output[GPIO_SPI_CS_Col] );
-	gpio_set_value(gpio_output_pin_numbers[GPIO_Sync_Ch1_Ch2_Ch3], HIGHT , fd_GPIO_pin_output[GPIO_Sync_Ch1_Ch2_Ch3] );// Проверить возможно  нужно по умолчанию ставить в ноль!!!!
-	gpio_set_value(gpio_output_pin_numbers[GPIO_SPI_Reset_Ch1], HIGHT , fd_GPIO_pin_output[GPIO_SPI_Reset_Ch1] );
-	gpio_set_value(gpio_output_pin_numbers[GPIO_SPI_Reset_Ch2], HIGHT , fd_GPIO_pin_output[GPIO_SPI_Reset_Ch2] );
-	gpio_set_value(gpio_output_pin_numbers[GPIO_SPI_Reset_Ch3], HIGHT , fd_GPIO_pin_output[GPIO_SPI_Reset_Ch3] );
+	gpio_set_value(fd_GPIO_pin_output[GPIO_SPI_CS_Ch1] , HIGHT);
+	gpio_set_value(fd_GPIO_pin_output[GPIO_SPI_CS_Ch2] , HIGHT);
+	gpio_set_value(fd_GPIO_pin_output[GPIO_SPI_CS_Ch3] , HIGHT);
+	gpio_set_value(fd_GPIO_pin_output[GPIO_SPI_CS_Disp] , HIGHT);
+	gpio_set_value(fd_GPIO_pin_output[GPIO_SPI_CS_Col], HIGHT);
+	gpio_set_value(fd_GPIO_pin_output[GPIO_Sync_Ch1_Ch2_Ch3], HIGHT);// Проверить возможно  нужно по умолчанию ставить в ноль!!!!
+	gpio_set_value(fd_GPIO_pin_output[GPIO_SPI_Reset_Ch1], HIGHT);
+	gpio_set_value(fd_GPIO_pin_output[GPIO_SPI_Reset_Ch2], HIGHT);
+	gpio_set_value(fd_GPIO_pin_output[GPIO_SPI_Reset_Ch3], HIGHT);
 
 	printf("Set default value gpio - SUCCESS!\n");
 

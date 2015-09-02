@@ -124,7 +124,7 @@ int gpio_set_edge(unsigned int gpio, char *edge){
 /******************************************************
  * Gpio set  value
  *****************************************************/
-int gpio_set_value(unsigned int gpio, enum PIN_VALUE value, int fd ){
+int gpio_set_value(int fd, enum PIN_VALUE value){
 
 	//snprintf(buf,sizeof(buf),SYSFS_GPIO_DIR "/gpio%d/value",gpio);
 	//fd=open(buf, O_WRONLY);
@@ -181,7 +181,7 @@ int gpio_fd_open_R_W(unsigned int gpio){
 
 	snprintf(buf,sizeof(buf), SYSFS_GPIO_DIR "/gpio%d/value",gpio);
 
-	fd=open(buf, O_RDWR);
+	fd=open(buf, O_RDWR);//
 	if (fd<0){
 		perror("gpio/write read");
 		return fd;

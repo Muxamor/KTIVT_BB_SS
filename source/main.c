@@ -14,16 +14,19 @@
  * In Eclipse add Include path
  *     C:\gcc-linaro\arm-linux-gnueabihf\libc\usr\include
  *
+ * In Eclipse add Include path
+ * /usr/local/linaro/arm-linux-gnueabihf/arm-linux-gnueabihf/libc/usr/include
+ *
  */
 
-//#include "../include/main.h"
+//
 #include <stdio.h>
 #include <stdlib.h>
-#include <linux/spi/spidev.h>
-#include "../include/main.h"
+//#include <linux/spi/spidev.h>
 #include "../include/GPIO_SS.h"
-#include "../include/SPI_SS.h"
+//#include "../include/SPI_SS.h"
 #include "../include/BB_Setup.h"
+//#include "../include/main.h"
 
 //#include <stdint.h>
 //#include <unistd.h>
@@ -109,8 +112,8 @@ static void transfer(int fd){
  ****************************************************************/
  int main(void)
 { 
-	/*Default_Setup_GPIO_BB();
-
+	Default_Setup_GPIO_BB();
+	/*
 	fd_SPI_BB = spi_device_open("/dev/spidev1.0");
 	set_spi_settings(fd_SPI_BB, SPI_MODE_1, 16 , 16000000);
 	uint16_t tx_buf[] = {0x0102,0x0304};
@@ -121,18 +124,18 @@ static void transfer(int fd){
 		printf("0x%.4X ", rx_buf[i]);
 	}
 	*/
-	gpio_export(7);
-	gpio_set_direction(7, INPUT_PIN);
-	gpio_set_edge(7, "rising");
-	int fd_GPIO_SPI_INT_Ch1;
-	fd_GPIO_SPI_INT_Ch1 = gpio_fd_open_R_O(7);
+	//gpio_export(7);
+	//gpio_set_direction(7, INPUT_PIN);
+	//gpio_set_edge(7, "rising");
+	//int fd_GPIO_SPI_INT_Ch1;
+	//fd_GPIO_SPI_INT_Ch1 = gpio_fd_open_R_O(7);
 
 	printf("sleep 10 second\n");
 	sleep(10);
 	int check;
 
 	//gpio_input_pin_numbers[GPIO_SPI_INT_Ch1]
-	check= gpio_get_value_interrupt(7, 0);
+	check= gpio_get_value_interrupt(fd_GPIO_pin_input[GPIO_SPI_INT_Ch1],0);
 
 	if(check==-1){
 				printf("interrupt no happen\n");
@@ -142,7 +145,7 @@ static void transfer(int fd){
 			}
 	printf("sleep 10 second\n");
 	sleep(10);
-	check= gpio_get_value_interrupt(7,0);
+	check= gpio_get_value_interrupt(fd_GPIO_pin_input[GPIO_SPI_INT_Ch1],0);
 
 		if(check==-1){
 			printf("interrupt no happen \n");
@@ -152,7 +155,7 @@ static void transfer(int fd){
 		}
 	printf("sleep 10 second\n");
 	sleep(10);
-			check= gpio_get_value_interrupt(7, 100);
+			check= gpio_get_value_interrupt(fd_GPIO_pin_input[GPIO_SPI_INT_Ch1], 100);
 
 				if(check==-1){
 					printf("interrupt no happen \n");
