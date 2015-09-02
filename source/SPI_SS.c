@@ -41,11 +41,11 @@ int spi_transfer (int fd, uint16_t SPI_channel, uint16_t tx_buffer[], uint16_t r
 	SPI_trunsfer_struct.len = size;  // Need write quantity of bits in a parcel.
 	SPI_trunsfer_struct.delay_usecs = delay_SPI;
 
-	gpio_set_value(gpio_output_pin_numbers[SPI_channel], LOW , fd_GPIO_pin_output[SPI_channel] );
+	gpio_set_value(fd_GPIO_pin_output[SPI_channel] , LOW);
 
 	ret = ioctl(fd, SPI_IOC_MESSAGE(1), &SPI_trunsfer_struct);
 
-	gpio_set_value(gpio_output_pin_numbers[SPI_channel], HIGHT  , fd_GPIO_pin_output[SPI_channel] );
+	gpio_set_value(fd_GPIO_pin_output[SPI_channel] , HIGHT);
 
 	if (ret < 1){
 		return -1;

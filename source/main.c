@@ -1,20 +1,14 @@
 /*
-
+ * Version: 0.0
+ * Date:	26.7.2015
  *
- * Version: 1.0
- * Date:	18.10.2013
+ * Develop: Ivan Neskorodev
+ * Email: ivan.neskorodev@gmail.com
  *
- * Copyright (c) 2013, jkuhlm - All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * In Eclipse add Include path
+ * In Eclipse add Include path Windows
  *     C:\gcc-linaro\arm-linux-gnueabihf\libc\usr\include
  *
- * In Eclipse add Include path
+ * In Eclipse add Include path Linux
  * /usr/local/linaro/arm-linux-gnueabihf/arm-linux-gnueabihf/libc/usr/include
  *
  */
@@ -22,14 +16,14 @@
 //
 #include <stdio.h>
 #include <stdlib.h>
-//#include <linux/spi/spidev.h>
+#include <linux/spi/spidev.h>
 #include "../include/GPIO_SS.h"
-//#include "../include/SPI_SS.h"
+#include "../include/SPI_SS.h"
 #include "../include/BB_Setup.h"
-//#include "../include/main.h"
+#include "../include/main.h"
 
-//#include <stdint.h>
-//#include <unistd.h>
+
+
 //#include <getopt.h>
 //#include <sys/ioctl.h>
 //#include <linux/types.h>
@@ -113,25 +107,27 @@ static void transfer(int fd){
  int main(void)
 { 
 	Default_Setup_GPIO_BB();
-	/*
+
 	fd_SPI_BB = spi_device_open("/dev/spidev1.0");
-	set_spi_settings(fd_SPI_BB, SPI_MODE_1, 16 , 16000000);
-	uint16_t tx_buf[] = {0x0102,0x0304};
+	set_spi_settings(fd_SPI_BB, SPI_MODE_1, 16 , 18000000);
+	uint16_t tx_buf[] = {0x0108,0x0000};
 	uint16_t rx_buf[ARRAY_SIZE(tx_buf)] = {};
 	spi_transfer (fd_SPI_BB, GPIO_SPI_CS_Ch1 ,tx_buf, rx_buf, sizeof(tx_buf), 0);
-	int i;
-	for (i = 0; i < ARRAY_SIZE(tx_buf); i++){
-		printf("0x%.4X ", rx_buf[i]);
-	}
-	*/
-	//gpio_export(7);
-	//gpio_set_direction(7, INPUT_PIN);
-	//gpio_set_edge(7, "rising");
-	//int fd_GPIO_SPI_INT_Ch1;
-	//fd_GPIO_SPI_INT_Ch1 = gpio_fd_open_R_O(7);
 
-	printf("sleep 10 second\n");
-	sleep(10);
+	while((gpio_get_value_interrupt(fd_GPIO_pin_input[GPIO_SPI_INT_Ch1],0)) != 1);
+
+	uint16_t tx_buf1[] = {0x0000,0x0000};
+	uint16_t rx_buf1[ARRAY_SIZE(tx_buf)] = {};
+	spi_transfer (fd_SPI_BB, GPIO_SPI_CS_Ch1 ,tx_buf1, rx_buf1, sizeof(tx_buf1), 0);
+
+	int i;
+	for (i = 0; i < ARRAY_SIZE(tx_buf1); i++){
+		printf("0x%.4X ", rx_buf1[i]);
+	}
+	printf("\n");
+
+	printf("sleep 1 second\n");
+	sleep(1);
 	int check;
 
 	//gpio_input_pin_numbers[GPIO_SPI_INT_Ch1]
@@ -143,8 +139,8 @@ static void transfer(int fd){
 
 				printf("interrupt happen %d\n", check);
 			}
-	printf("sleep 10 second\n");
-	sleep(10);
+	printf("sleep 1 second\n");
+	sleep(1);
 	check= gpio_get_value_interrupt(fd_GPIO_pin_input[GPIO_SPI_INT_Ch1],0);
 
 		if(check==-1){
@@ -153,8 +149,8 @@ static void transfer(int fd){
 
 			printf("interrupt happen %d\n", check);
 		}
-	printf("sleep 10 second\n");
-	sleep(10);
+	printf("sleep 1 second\n");
+	sleep(1);
 			check= gpio_get_value_interrupt(fd_GPIO_pin_input[GPIO_SPI_INT_Ch1], 100);
 
 				if(check==-1){
