@@ -32,7 +32,7 @@ int gpio_export(unsigned int gpio){
 	fd = open(SYSFS_GPIO_DIR "/export", O_WRONLY);
 	if (fd < 0){
 		perror("gpio/export");
-		return fd;
+		return -1;
 	}
 
 	len = snprintf(buf, sizeof(buf), "%d", gpio );
@@ -56,7 +56,7 @@ int gpio_unexport(unsigned int gpio){
 	fd = open(SYSFS_GPIO_DIR "/unexport", O_WRONLY);
 	if (fd < 0){
 		perror("gpio/export");
-		return fd;
+		return -1;
 	}
 
 	len = snprintf(buf, sizeof(buf), "%d", gpio );
@@ -82,7 +82,7 @@ int gpio_set_direction(unsigned int gpio, enum PIN_DIRECTION flag_direction ){
 	fd=open(buf, O_WRONLY);
 	if (fd<0){
 		perror("gpio/direction");
-		return fd;
+		return -1;
 	}
 
 	if (flag_direction == OUTPUT_PIN){
@@ -109,7 +109,7 @@ int gpio_set_edge(unsigned int gpio, char *edge){
 	fd=open(buf, O_WRONLY);
 	if (fd<0){
 		perror("gpio/edge");
-		return fd;
+		return -1;
 	}
 
 
@@ -184,7 +184,7 @@ int gpio_fd_open_R_W(unsigned int gpio){
 	fd=open(buf, O_RDWR);//
 	if (fd<0){
 		perror("gpio/write read");
-		return fd;
+		return -1;
 	}
 
 	return fd;
@@ -204,7 +204,7 @@ int gpio_fd_open_R_O(unsigned int gpio){
 	fd=open(buf, O_RDONLY );
 	if (fd<0){
 		perror("gpio/read only");
-		return fd;
+		return -1;
 	}
 
 	read(fd, &c, sizeof(c));

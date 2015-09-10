@@ -1,8 +1,13 @@
 /*
  * SPI_SS.h
  *
- *  Created on: 31 авг. 2015 г.
- *      Author: Ivan
+ *
+ * Version: 0.0
+ * Date:	26.7.2015
+ *
+ * Develop: Ivan Neskorodev
+ * Email: ivan.neskorodev@gmail.com
+ *
  */
 
 #ifndef INCLUDE_SPI_SS_H_

@@ -1,5 +1,5 @@
 PROJECT=KTIVT_BB_SS
-# Set the FLAG OS_SYSTEM - LINUX or WINDOWS or ON_BB it depends which sistem are you use to build. 
+# Set the FLAG OS_SYSTEM - LINUX or WINDOWS or BEAGLEBONEBLACK it depends which sistem are you use to build. 
 OS_SYSTEM=LINUX
 
 # Two additional CFLAGS must be used for Angstrom
@@ -40,6 +40,9 @@ LD = "/usr/local/linaro/arm-linux-gnueabihf/bin/arm-linux-gnueabihf-gcc"
 else ifeq ($(OS_SYSTEM),WINDOWS)
 CC = "C:\gcc-linaro\bin\arm-linux-gnueabihf-gcc.exe"
 LD = "C:\gcc-linaro\bin\arm-linux-gnueabihf-gcc.exe"
+else ifeq ($(OS_SYSTEM),BEAGLEBONEBLACK)
+CC = "gcc"
+LD = "gcc"
 endif
 
 

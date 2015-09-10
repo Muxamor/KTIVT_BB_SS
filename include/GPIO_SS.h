@@ -4,7 +4,8 @@
  * Version: 0.0
  * Date:	26.7.2015
  *
- * Develop: Ivan Neskorodev ivan.neskorodev@gmail.com
+ * Develop: Ivan Neskorodev
+ * Email: ivan.neskorodev@gmail.com
  *
  */
 

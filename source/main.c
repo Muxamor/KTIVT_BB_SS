@@ -9,7 +9,7 @@
  *     C:\gcc-linaro\arm-linux-gnueabihf\libc\usr\include
  *
  * In Eclipse add Include path Linux
- * /usr/local/linaro/arm-linux-gnueabihf/arm-linux-gnueabihf/libc/usr/include
+ *     /usr/local/linaro/arm-linux-gnueabihf/arm-linux-gnueabihf/libc/usr/include
  *
  */
 
@@ -40,85 +40,35 @@
 	perror(s);
 	abort();
 }
-
-static void transfer(int fd){
-	int ret;
-
-		uint16_t tx1[] = {
-				0x0000,0x0000
-		};
-
-		uint16_t rx1[ARRAY_SIZE(tx1)] = {0, };
-
-		struct spi_ioc_transfer tr = {
-			.tx_buf = (unsigned long)tx1,
-			.rx_buf = (unsigned long)rx1,
-			.len = 4,//ARRAY_SIZE(tx),
-			.delay_usecs = delay,
-			.speed_hz = speed,
-			.bits_per_word = bits,
-		};
-
-		ret = ioctl(fd, SPI_IOC_MESSAGE(1), &tr);
-		if (ret < 1)
-			pabort("can't send spi message");
-
-		for (ret = 0; ret < ARRAY_SIZE(tx1); ret++) {
-			if (!(ret % 14))
-				puts("");
-			printf("%.4X ", rx1[ret]);
-		}
-*/
-
-/*
-		uint16_t tx2[] = {
-						0x0000
-				};
-
-				uint16_t rx2[ARRAY_SIZE(tx2)] = {0, };
-
-
-						tr.tx_buf = (unsigned long)tx2,
-						tr.rx_buf = (unsigned long)rx2,
-						tr.len = 4,//ARRAY_SIZE(tx),
-						tr.delay_usecs = delay,
-						tr.speed_hz = speed,
-						tr.bits_per_word = bits,
-
-
-				ret = ioctl(fd, SPI_IOC_MESSAGE(1), &tr);
-				if (ret < 1)
-					pabort("can't send spi message");
-
-				for (ret = 0; ret < ARRAY_SIZE(tx2); ret++) {
-					if (!(ret % 14))
-						puts("");
-					printf("%.2X ", rx2[ret]);
-				}
-*/
-		//puts("");
-//}
-
-
   
 /****************************************************************
  * Our main function
  ****************************************************************/
- int main(void)
-{ 
-	Default_Setup_GPIO_BB();
+ int main(void){
+
+	 int ret=0;
+
+
+	ret = Default_Setup_GPIO_BB();
+	if (ret==-1){
+		perror("Default_Setup_GPIO_BB()");
+		return EXIT_FAILURE;
+	}
+	//Default_Setup_SPI_BB();
 
 	fd_SPI_BB = spi_device_open("/dev/spidev1.0");
 	set_spi_settings(fd_SPI_BB, SPI_MODE_1, 16 , 18000000);
-	uint16_t tx_buf[] = {0x0108,0x0000};
-	uint16_t rx_buf[ARRAY_SIZE(tx_buf)] = {};
-	spi_transfer (fd_SPI_BB, GPIO_SPI_CS_Ch1 ,tx_buf, rx_buf, sizeof(tx_buf), 0);
 
-	while((gpio_get_value_interrupt(fd_GPIO_pin_input[GPIO_SPI_INT_Ch1],0)) != 1);
+
+	uint16_t tx_buf[] = {0x0104,0x0000};
+	uint16_t rx_buf[ARRAY_SIZE(tx_buf)] = {};
+	spi_transfer (fd_SPI_BB, GPIO_SPI_CS_Ch2 ,tx_buf, rx_buf, sizeof(tx_buf), 0);
+
+	while((gpio_get_value_interrupt(fd_GPIO_pin_input[GPIO_SPI_INT_Ch2],0)) != 1);
 
 	uint16_t tx_buf1[] = {0x0000,0x0000};
-	uint16_t rx_buf1[ARRAY_SIZE(tx_buf)] = {};
-	spi_transfer (fd_SPI_BB, GPIO_SPI_CS_Ch1 ,tx_buf1, rx_buf1, sizeof(tx_buf1), 0);
+	uint16_t rx_buf1[ARRAY_SIZE(tx_buf1)] = {};
+	spi_transfer (fd_SPI_BB, GPIO_SPI_CS_Ch2 ,tx_buf1, rx_buf1, sizeof(tx_buf1), 0);
 
 	int i;
 	for (i = 0; i < ARRAY_SIZE(tx_buf1); i++){

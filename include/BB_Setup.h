@@ -1,8 +1,12 @@
 /*
  * BB_Setup.h
+*
+ * Version: 0.0
+ * Date:	26.7.2015
  *
- *  Created on: 25 авг. 2015 г.
- *      Author: Ivan
+ * Develop: Ivan Neskorodev
+ * Email: ivan.neskorodev@gmail.com
+ *
  */
 
 #ifndef INCLUDE_BB_SETUP_H_
@@ -12,8 +16,6 @@
 *                 Constants                         *
 ****************************************************/
 //list for output pins for seismic station KTIVT
-
-
 typedef enum {
 	GPIO_SPI_CS_Ch1,
 	GPIO_SPI_CS_Ch2,
@@ -52,6 +54,8 @@ unsigned int fd_GPIO_pin_input[ GPIO_in_MAX ];
 *                Setup BB function                 *
 ***************************************************/
 int Default_Setup_GPIO_BB (void);
+int on_off_channel(unsigned int gpio, int on_off);
+int reset_channel (unsigned int gpio);
 
 
 

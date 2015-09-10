@@ -99,7 +99,7 @@ int set_spi_settings(int fd, uint8_t mode, uint8_t bits_in_word, uint32_t speed_
 		return EXIT_FAILURE;
 	}
 
-	SPI_trunsfer_struct.bits_per_word=bits_in_word;
+	SPI_trunsfer_struct.bits_per_word=bits_in_word;//Global struct
 
 // Set max speed for SPI
 	ret = ioctl(fd, SPI_IOC_WR_MAX_SPEED_HZ, &speed_SPI);
@@ -114,14 +114,16 @@ int set_spi_settings(int fd, uint8_t mode, uint8_t bits_in_word, uint32_t speed_
 		return EXIT_FAILURE;
 	}
 
-	SPI_trunsfer_struct.speed_hz = speed_SPI;
+	SPI_trunsfer_struct.speed_hz = speed_SPI;//Global struct
 
 
 
 // Print report of the settings SPI port.
-	printf("spi mode: %d\n", mode);
-	printf("bits per word: %d\n", bits_in_word);
-	printf("max speed: %d Hz (%d KHz)\n", speed_SPI, speed_SPI/1000);
+	printf("Setup SPI - SUCCESS!\n");
+	printf("Setting SPI:\n");
+	printf("--spi mode: %d\n", mode);
+	printf("--bits per word: %d\n", bits_in_word);
+	printf("--max speed: %d Hz (%d KHz)\n", speed_SPI, speed_SPI/1000);
 
 	return 0;
 }

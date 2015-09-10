@@ -8,21 +8,34 @@
  * Email: ivan.neskorodev@gmail.com
  *
  */
-#include "../include/BB_Setup.h"
-#include "../include/GPIO_SS.h"
+
 #include <stdio.h>
+#include <unistd.h>
+#include "../include/GPIO_SS.h"
+#include "../include/BB_Setup.h"
 
 
+/*********************************************
+ * Default GPIO settings for BB
+ ********************************************/
 
 int Default_Setup_GPIO_BB (void){
 	int i;
+	int ret=0;
 
 //Export GPIO to the Linux sys.
 	for (i=0; i< GPIO_out_MAX; i++){
-		gpio_export(gpio_output_pin_numbers[i]);
+		ret=gpio_export(gpio_output_pin_numbers[i]);
+		if (ret==-1){
+			return -1;
+		}
+
 	}
 	for (i=0; i< GPIO_in_MAX; i++){
 		gpio_export(gpio_input_pin_numbers[i]);
+		if (ret==-1){
+			return -1;
+		}
 	}
 	printf("GPIO  export - SUCCESS!\n");
 
@@ -30,9 +43,16 @@ int Default_Setup_GPIO_BB (void){
 //Set direction for GPIO to the Linux sys.
 	for (i=0; i< GPIO_out_MAX; i++){
 		gpio_set_direction(gpio_output_pin_numbers[i],OUTPUT_PIN);
+		if (ret==-1){
+			return -1;
+		}
 	}
+
 	for (i=0; i< GPIO_in_MAX; i++){
 		gpio_set_direction(gpio_input_pin_numbers[i],INPUT_PIN);
+		if (ret==-1){
+			return -1;
+		}
 	}
 	printf("GPIO set direction - SUCCESS!\n");
 
@@ -40,6 +60,9 @@ int Default_Setup_GPIO_BB (void){
 /// Set edge to implementation interrupts for input GPIO
 	for (i=0; i< GPIO_in_MAX; i++){
 		gpio_set_edge(gpio_input_pin_numbers[i],"rising");
+		if (ret==-1){
+			return -1;
+		}
 	}
 	printf("GPIO set edge - SUCCESS!\n");
 
@@ -47,9 +70,16 @@ int Default_Setup_GPIO_BB (void){
 //Open GPIO file to operate gpio.
 	for (i=0; i< GPIO_out_MAX; i++){
 		fd_GPIO_pin_output[i]=gpio_fd_open_R_W(gpio_output_pin_numbers[i]);
+		if (ret==-1){
+			return -1;
+		}
 	}
+
 	for (i=0; i< GPIO_in_MAX; i++){
 		fd_GPIO_pin_input[i]=gpio_fd_open_R_O(gpio_input_pin_numbers[i]);
+		if (ret==-1){
+			return -1;
+		}
 	}
 	printf("Get FD - SUCCESS!\n");
 
@@ -74,3 +104,31 @@ int Default_Setup_GPIO_BB (void){
 	*/
 	return 0;
 }
+
+/*********************************************
+ * On OFF analog channel
+ ********************************************/
+int on_off_channel (unsigned int gpio, int on_off){
+
+	if(on_off==1){
+		gpio_set_value(fd_GPIO_pin_output[gpio] , HIGHT);
+	}else{
+		gpio_set_value(fd_GPIO_pin_output[gpio] , LOW);
+	}
+
+	return 0;
+}
+
+/*********************************************
+ * Reset  analog channel
+ ********************************************/
+int reset_channel (unsigned int gpio){
+
+	gpio_set_value(fd_GPIO_pin_output[gpio] , LOW);
+	usleep(5);
+	gpio_set_value(fd_GPIO_pin_output[gpio] , HIGHT);
+
+	return 0;
+}
+
+
