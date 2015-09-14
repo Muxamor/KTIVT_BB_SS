@@ -33,7 +33,7 @@ COBJ = \
  $(OBJDIR)/BB_Setup.o\
  $(OBJDIR)/SPI_SS.o
 
-# gcc binaries to use. Write correct path on your system 
+# gcc binaries to use. Write correct path on your OS system 
 ifeq ($(OS_SYSTEM),LINUX)
 CC = "/usr/local/linaro/arm-linux-gnueabihf/bin/arm-linux-gnueabihf-gcc"
 LD = "/usr/local/linaro/arm-linux-gnueabihf/bin/arm-linux-gnueabihf-gcc"

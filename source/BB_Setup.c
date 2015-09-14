@@ -91,9 +91,9 @@ int Default_Setup_GPIO_BB (void){
 	gpio_set_value(fd_GPIO_pin_output[GPIO_SPI_CS_Disp] , HIGHT);
 	gpio_set_value(fd_GPIO_pin_output[GPIO_SPI_CS_Col], HIGHT);
 	gpio_set_value(fd_GPIO_pin_output[GPIO_Sync_Ch1_Ch2_Ch3], HIGHT);// Проверить возможно  нужно по умолчанию ставить в ноль!!!!
-	gpio_set_value(fd_GPIO_pin_output[GPIO_SPI_Reset_Ch1], HIGHT);
-	gpio_set_value(fd_GPIO_pin_output[GPIO_SPI_Reset_Ch2], HIGHT);
-	gpio_set_value(fd_GPIO_pin_output[GPIO_SPI_Reset_Ch3], HIGHT);
+	gpio_set_value(fd_GPIO_pin_output[GPIO_SPI_Reset_Ch1], LOW);
+	gpio_set_value(fd_GPIO_pin_output[GPIO_SPI_Reset_Ch2], LOW);
+	gpio_set_value(fd_GPIO_pin_output[GPIO_SPI_Reset_Ch3], LOW);
 
 	printf("Set default value gpio - SUCCESS!\n");
 
@@ -106,15 +106,21 @@ int Default_Setup_GPIO_BB (void){
 }
 
 /*********************************************
- * On OFF analog channel
+ * Enable analog channel
  ********************************************/
-int on_off_channel (unsigned int gpio, int on_off){
+int enable_analog_channel (unsigned int gpio){
 
-	if(on_off==1){
-		gpio_set_value(fd_GPIO_pin_output[gpio] , HIGHT);
-	}else{
 		gpio_set_value(fd_GPIO_pin_output[gpio] , LOW);
-	}
+
+	return 0;
+}
+
+/*********************************************
+ * Disable analog channel
+ ********************************************/
+int disable_analog_channel (unsigned int gpio){
+
+		gpio_set_value(fd_GPIO_pin_output[gpio] , HIGHT);
 
 	return 0;
 }
@@ -122,7 +128,7 @@ int on_off_channel (unsigned int gpio, int on_off){
 /*********************************************
  * Reset  analog channel
  ********************************************/
-int reset_channel (unsigned int gpio){
+int reset_analog_channel (unsigned int gpio){
 
 	gpio_set_value(fd_GPIO_pin_output[gpio] , LOW);
 	usleep(5);

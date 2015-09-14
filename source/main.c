@@ -62,13 +62,13 @@
 
 	uint16_t tx_buf[] = {0x0104,0x0000};
 	uint16_t rx_buf[ARRAY_SIZE(tx_buf)] = {};
-	spi_transfer (fd_SPI_BB, GPIO_SPI_CS_Ch2 ,tx_buf, rx_buf, sizeof(tx_buf), 0);
+	spi_transfer (fd_SPI_BB, GPIO_SPI_CS_Ch3 ,tx_buf, rx_buf, sizeof(tx_buf), 0);
 
-	while((gpio_get_value_interrupt(fd_GPIO_pin_input[GPIO_SPI_INT_Ch2],0)) != 1);
+	while((gpio_get_value_interrupt(fd_GPIO_pin_input[GPIO_SPI_INT_Ch3],0)) != 1);
 
 	uint16_t tx_buf1[] = {0x0000,0x0000};
 	uint16_t rx_buf1[ARRAY_SIZE(tx_buf1)] = {};
-	spi_transfer (fd_SPI_BB, GPIO_SPI_CS_Ch2 ,tx_buf1, rx_buf1, sizeof(tx_buf1), 0);
+	spi_transfer (fd_SPI_BB, GPIO_SPI_CS_Ch3 ,tx_buf1, rx_buf1, sizeof(tx_buf1), 0);
 
 	int i;
 	for (i = 0; i < ARRAY_SIZE(tx_buf1); i++){

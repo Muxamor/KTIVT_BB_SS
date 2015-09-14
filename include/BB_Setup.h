@@ -54,8 +54,9 @@ unsigned int fd_GPIO_pin_input[ GPIO_in_MAX ];
 *                Setup BB function                 *
 ***************************************************/
 int Default_Setup_GPIO_BB (void);
-int on_off_channel(unsigned int gpio, int on_off);
-int reset_channel (unsigned int gpio);
+int enable_analog_channel (unsigned int gpio);
+int disable_analog_channel (unsigned int gpio);
+int reset_analog_channel (unsigned int gpio);
 
 
 
