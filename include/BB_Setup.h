@@ -15,6 +15,9 @@
 /****************************************************
 *                 Constants                         *
 ****************************************************/
+//Area size for console parser function
+#define CONSOLE_MAS_SIZE 13
+
 //list for output pins for seismic station KTIVT
 typedef enum {
 	GPIO_SPI_CS_Ch1,
@@ -48,6 +51,7 @@ static unsigned int gpio_input_pin_numbers[GPIO_in_MAX] = { 7, 26, 27 };
 // Area for file descriptors of GPIO
 unsigned int fd_GPIO_pin_output[ GPIO_out_MAX ];
 unsigned int fd_GPIO_pin_input[ GPIO_in_MAX ];
+
 
 
 /***************************************************

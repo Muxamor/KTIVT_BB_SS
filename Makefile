@@ -24,14 +24,16 @@ DEPS = \
  include/main.h\
  include/GPIO_SS.h\
  include/BB_Setup.h\
- include/SPI_SS.h
+ include/SPI_SS.h\
+ include/Config_pars.h
 
 # Compiler object files 
 COBJ = \
  $(OBJDIR)/main.o \
  $(OBJDIR)/GPIO_SS.o\
  $(OBJDIR)/BB_Setup.o\
- $(OBJDIR)/SPI_SS.o
+ $(OBJDIR)/SPI_SS.o\
+ $(OBJDIR)/Config_pars.o
 
 # gcc binaries to use. Write correct path on your OS system 
 ifeq ($(OS_SYSTEM),LINUX)

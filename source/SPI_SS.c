@@ -62,7 +62,7 @@ int spi_device_open(char *device){
 	fd = open(device, O_RDWR);
 	if (fd < 0){
 		perror("can't open device");
-		return EXIT_FAILURE;
+		abort();
 	}
 
 	return fd;
@@ -76,13 +76,13 @@ int set_spi_settings(int fd, uint8_t mode, uint8_t bits_in_word, uint32_t speed_
 	ret = ioctl(fd, SPI_IOC_WR_MODE, &mode);
 	if (ret == -1){
 		perror("can't set spi mode");
-	    return EXIT_FAILURE;
+		abort();
 	}
 
 	ret = ioctl(fd, SPI_IOC_RD_MODE, &mode);
 	if (ret == -1){
 		perror("can't get spi mode");
-		return EXIT_FAILURE;
+		abort();
 	}
 
 
@@ -90,13 +90,13 @@ int set_spi_settings(int fd, uint8_t mode, uint8_t bits_in_word, uint32_t speed_
 	ret = ioctl(fd, SPI_IOC_WR_BITS_PER_WORD, &bits_in_word);
 	if (ret == -1){
 		perror("can't set bits per word");
-		return EXIT_FAILURE;
+		abort();
 	}
 
 	ret = ioctl(fd, SPI_IOC_RD_BITS_PER_WORD, &bits_in_word);
 	if (ret == -1){
 		perror("can't get bits per word");
-		return EXIT_FAILURE;
+		abort();
 	}
 
 	SPI_trunsfer_struct.bits_per_word=bits_in_word;//Global struct
@@ -105,13 +105,13 @@ int set_spi_settings(int fd, uint8_t mode, uint8_t bits_in_word, uint32_t speed_
 	ret = ioctl(fd, SPI_IOC_WR_MAX_SPEED_HZ, &speed_SPI);
 	if (ret == -1){
 		perror("can't set max speed hz");
-		return EXIT_FAILURE;
+		abort();
 	}
 
 	ret = ioctl(fd, SPI_IOC_RD_MAX_SPEED_HZ, &speed_SPI);
 	if (ret == -1){
 		perror("can't get max speed hz");
-		return EXIT_FAILURE;
+		abort();
 	}
 
 	SPI_trunsfer_struct.speed_hz = speed_SPI;//Global struct
