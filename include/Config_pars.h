@@ -12,7 +12,13 @@ struct config_t
     unsigned short fd;
 };
 
-int parse_config(FILE *fp, struct config_t *cfg, int chan_num);
+struct settings_ch{
+	unsigned char mode;
+	unsigned char state;
+	struct config_t config_ch;
+};
+
+int parse_config(FILE *fp, struct settings_ch *cfg, int chan_num);
 
 
 #endif

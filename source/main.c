@@ -17,6 +17,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <stdint.h>
 //#include </usr/local/Cellar/libconfig/1.5/include/libconfig.h>
 #include <linux/spi/spidev.h>
 #include "../include/GPIO_SS.h"
@@ -25,9 +26,12 @@
 #include "../include/Config_pars.h"
 #include "../include/main.h"
 
-
-
-
+/*Спшуля писала
+int ConfigCompare ( config_t *Config1, config_t *Config2 )
+{
+	return memcpy( Config1, Config2, sizeof(&Config1));
+}
+*/
 
 //#include <getopt.h>
 //#include <sys/ioctl.h>
@@ -52,7 +56,8 @@ static void pabort(const char *s){
 
 
 	int ret=0;
-    int i;
+	int N = 3; //кол-во каналов
+    uint32_t i;
 
 	ret = Default_Setup_GPIO_BB();
 	if (ret==-1){
@@ -65,18 +70,66 @@ static void pabort(const char *s){
 
 	//Чтение конфига и обратбота
 
-    FILE *fp = fopen("KTIVT_BB_SS.conf", "r");
-    struct config_t cfg[3];
-
+    FILE *fd_config_file = fopen("KTIVT_BB_SS.conf", "r");
+    if(fd_config_file==NULL){
+    	printf("Configure file is not found");
+    	return EXIT_FAILURE;
+    }
+    struct settings_ch cfg_ch_old[N];
 
     // read config
-    parse_config(fp, cfg, 3);
+    parse_config(fd_config_file, cfg_ch_old, N);
 
-    // write input parameter
-    for(i = 0; i < 3; i++){
-        printf("write(ch=%d, opt=KU1, val=%d)\n", i+1, cfg[i].ku1);
+    //sent settings to analog channel
+
+    struct config_t cfg_new[N];
+  //  uint16_t()
+    uint16_t tx_buf[] = {};
+    uint16_t rx_buf[ARRAY_SIZE(tx_buf)] = {};
+
+    if(cfg_ch_old[0].config_ch.input==inp_1_1){
+    	tx_buf[0]=0x0100;
+    	tx_buf[1]=0x0000;
+    }else if(cfg_ch_old[0].config_ch.input==inp_1_10){
+    	tx_buf[0]=0x0101;
+    	tx_buf[1]=0x0000;
+    }else if(cfg_ch_old[0].config_ch.input==inp_0V){
+    	tx_buf[0]=0x0102;
+    	tx_buf[1]=0x0000;
+    }else if(cfg_ch_old[0].config_ch.input==inp_cal){
+    	tx_buf[0]=0x0103;
+    	tx_buf[1]=0x0000;
+    }else if(cfg_ch_old[0].config_ch.input==z_state){
+    	tx_buf[0]=0x0104;
+    	tx_buf[1]=0x0000;
     }
 
+    //spi_transfer_command_analog_ch( )
+    spi_transfer (fd_SPI_BB, GPIO_SPI_CS_Ch1 ,tx_buf, rx_buf, sizeof(tx_buf), 0);
+
+    while((gpio_get_value_interrupt(fd_GPIO_pin_input[GPIO_SPI_INT_Ch1],0)) != 1);
+
+    tx_buf[0]=0x0000;
+    tx_buf[1]=0x0000;
+
+    spi_transfer (fd_SPI_BB, GPIO_SPI_CS_Ch1 ,tx_buf, rx_buf, sizeof(tx_buf), 0);
+
+    if(rx_buf[0]==0x0001){
+    	//сделать запись  в лог файл
+    	printf("Set settings Input switch: OK");
+    }else{
+    	printf("Set settings Input switch: FOULT");
+    }
+
+
+
+    //добавить обработку полученных настроек обработку полученных настроек
+/*
+    // write input parameter
+    for(i = 0; i < 3; i++){
+        printf("write(ch=%d, opt=KU1, val=%d)\n", i+1, cfg_old[i].ku1);
+    }
+*/
 
 	//reset_analog_channel(GPIO_SPI_Reset_Ch1);
 	//disable_analog_channel(GPIO_SPI_Reset_Ch2);
@@ -91,7 +144,7 @@ static void pabort(const char *s){
 	// написать обработчик команд с терминала
 	// написать отправку команд в BB
 
-
+/*
 	uint16_t tx_buf[] = {0x0104,0x0000};
 	uint16_t rx_buf[ARRAY_SIZE(tx_buf)] = {};
 	spi_transfer (fd_SPI_BB, GPIO_SPI_CS_Ch1 ,tx_buf, rx_buf, sizeof(tx_buf), 0);
@@ -145,6 +198,6 @@ static void pabort(const char *s){
 	//close(fd_SPI_BB);
 	//gpio_fd_close(fd_GPIO_pin_output[GPIO_SPI_CS_Ch1]);
 
-
+*/
 	 return EXIT_SUCCESS;
 }

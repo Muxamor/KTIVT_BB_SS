@@ -1,9 +1,9 @@
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 
 
-#include "Config_pars.h"
+#include "../include/Config_pars.h"
 
 static char *
 skip_spaces(char *str)
@@ -16,7 +16,8 @@ skip_spaces(char *str)
 void copy_token(char *dst, char *src, int maxlen)
 {
     char reject[] = " \t"; //Сделано на всякий случай если после ch1 поставить пробел или табуляцию?
-    size_t offs = strcspn(src, reject);
+    //size_t
+	unsigned int offs = strcspn(src, reject);
     memcpy(dst, src, offs);
     dst[offs] = '\0';
 }
@@ -110,11 +111,13 @@ typedef struct
 } description_t;
 
 static description_t options[] = {
-    { 1, "Input",   0, 0, 0 },
-    { 2, "KU1",     1, 10, 0 },
-    { 3, "Fcut",    1, 10, 0 },
-    { 4, "KU2",     1, 10, 0 },
-    { 5, "Fd",      1, 10, 0 }
+	{ 1, "Mode",   0, 0, 0 },
+	{ 2, "State",   0, 0, 0 },
+    { 3, "Input",   0, 0, 0 },
+    { 4, "KU1",     1, 10, 0 },
+    { 5, "Fcut",    1, 10, 0 },
+    { 6, "KU2",     1, 10, 0 },
+    { 7, "Fd",      1, 10, 0 }
 };
 static int options_size = sizeof(options) / sizeof(options[0]);
 
@@ -140,7 +143,7 @@ preprocess_option(char *option, char *value)
     return -1;
 }
 
-int parse_config(FILE *fp, struct config_t *cfg, int chan_num)
+int parse_config(FILE *fp, struct settings_ch *cfg, int chan_num)
 {
     int lineno;
     while( !feof(fp) ){
@@ -169,33 +172,49 @@ int parse_config(FILE *fp, struct config_t *cfg, int chan_num)
 
         switch( options[idx].id ){
         case 1:
+        	if( strcmp(value, "on") == 0){
+        		cfg[chan-1].mode = 1;
+        	}else if( strcmp(value, "off") == 0){
+        		cfg[chan-1].mode = 0;
+        	}
+        	break;
+        case 2:
+        	if( strcmp(value, "start") == 0){
+        		cfg[chan-1].state = 1;
+        	}else if( strcmp(value, "stop") == 0){
+        		cfg[chan-1].state = 0;
+        	}
+        	break;
+
+
+        case 3:
             if( strcmp(value, "1:1") == 0 ){
-                cfg[chan-1].input = inp_1_1;
+                cfg[chan-1].config_ch.input = inp_1_1;
             } else if( strcmp(value,"1:10") == 0 ){
-                cfg[chan-1].input = inp_1_10;
+            	cfg[chan-1].config_ch.input = inp_1_10;
             } else if( strcmp(value,"0V") == 0 ){
-                cfg[chan-1].input = inp_0V;
+            	cfg[chan-1].config_ch.input = inp_0V;
             } else if( strcmp(value, "calibrator" ) == 0){
-                cfg[chan-1].input = inp_cal;
+            	cfg[chan-1].config_ch.input = inp_cal;
             } else if( strcmp(value,"z-state") == 0){
-            	cfg[chan-1].input = z_state;
+            	cfg[chan-1].config_ch.input = z_state;
             } else {
                 printf("ERROR (config): %d: bad option \"%s\" value \"%s\"\n",
                     lineno, option, value);
                 return -1;
             }
             break;
-        case 2:
-            cfg[chan-1].ku1 = options[idx].int_val;
-            break;
-        case 3:
-            cfg[chan-1].fcut = options[idx].int_val;
-            break;
         case 4:
-            cfg[chan-1].ku2 = options[idx].int_val;
+        	cfg[chan-1].config_ch.ku1 = options[idx].int_val;
             break;
         case 5:
-            cfg[chan-1].fd = options[idx].int_val;
+        	cfg[chan-1].config_ch.fcut = options[idx].int_val;
+            break;
+        case 6:
+        	cfg[chan-1].config_ch.ku2 = options[idx].int_val;
+            break;
+        case 7:
+        	cfg[chan-1].config_ch.fd = options[idx].int_val;
             break;
         }
     }
