@@ -91,9 +91,9 @@ int Default_Setup_GPIO_BB (void){
 	gpio_set_value(fd_GPIO_pin_output[GPIO_SPI_CS_Disp] , HIGHT);
 	gpio_set_value(fd_GPIO_pin_output[GPIO_SPI_CS_Col], HIGHT);
 	gpio_set_value(fd_GPIO_pin_output[GPIO_Sync_Ch1_Ch2_Ch3], HIGHT);// Проверить возможно  нужно по умолчанию ставить в ноль!!!!
-	gpio_set_value(fd_GPIO_pin_output[GPIO_SPI_Reset_Ch1], LOW);
-	gpio_set_value(fd_GPIO_pin_output[GPIO_SPI_Reset_Ch2], LOW);
-	gpio_set_value(fd_GPIO_pin_output[GPIO_SPI_Reset_Ch3], LOW);
+	gpio_set_value(fd_GPIO_pin_output[GPIO_SPI_Reset_Ch1], HIGHT); //Disable analog channel 1
+	gpio_set_value(fd_GPIO_pin_output[GPIO_SPI_Reset_Ch2], HIGHT); //Disable analog channel 1
+	gpio_set_value(fd_GPIO_pin_output[GPIO_SPI_Reset_Ch3], HIGHT); //Disable analog channel 1
 
 	printf("Set default value gpio - SUCCESS!\n");
 
@@ -381,4 +381,3 @@ int concole_command_parser (char *in_buffer, char size_in_buffer){
 
 
 }*/
-

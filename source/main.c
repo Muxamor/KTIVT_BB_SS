@@ -56,7 +56,6 @@ static void pabort(const char *s){
 
 
 	int ret=0;
-	int N = 3; //кол-во каналов
     uint32_t i;
 
 	ret = Default_Setup_GPIO_BB();
@@ -75,51 +74,95 @@ static void pabort(const char *s){
     	printf("Configure file is not found");
     	return EXIT_FAILURE;
     }
-    struct settings_ch cfg_ch_old[N];
-
+    struct settings_ch cfg_ch_old[3];
+    struct settings_ch cfg_ch_new[3];
     // read config
-    parse_config(fd_config_file, cfg_ch_old, N);
+    parse_config(fd_config_file, cfg_ch_old, 3);
 
     //sent settings to analog channel
 
-    struct config_t cfg_new[N];
-  //  uint16_t()
-    uint16_t tx_buf[] = {};
-    uint16_t rx_buf[ARRAY_SIZE(tx_buf)] = {};
 
-    if(cfg_ch_old[0].config_ch.input==inp_1_1){
-    	tx_buf[0]=0x0100;
-    	tx_buf[1]=0x0000;
-    }else if(cfg_ch_old[0].config_ch.input==inp_1_10){
-    	tx_buf[0]=0x0101;
-    	tx_buf[1]=0x0000;
-    }else if(cfg_ch_old[0].config_ch.input==inp_0V){
-    	tx_buf[0]=0x0102;
-    	tx_buf[1]=0x0000;
-    }else if(cfg_ch_old[0].config_ch.input==inp_cal){
-    	tx_buf[0]=0x0103;
-    	tx_buf[1]=0x0000;
-    }else if(cfg_ch_old[0].config_ch.input==z_state){
-    	tx_buf[0]=0x0104;
-    	tx_buf[1]=0x0000;
-    }
 
-    //spi_transfer_command_analog_ch( )
-    spi_transfer (fd_SPI_BB, GPIO_SPI_CS_Ch1 ,tx_buf, rx_buf, sizeof(tx_buf), 0);
+int parse_sent_settings (int fd_SPI, struct settings_ch *settings_old, struct settings_ch *settings_new, uint8_t compare_settings, uint8_t quantity_channels){
 
-    while((gpio_get_value_interrupt(fd_GPIO_pin_input[GPIO_SPI_INT_Ch1],0)) != 1);
+      uint8_t apply_settings[ quantity_channels ];
 
-    tx_buf[0]=0x0000;
-    tx_buf[1]=0x0000;
+      uint16_t tx_buf[2] = { 0 };
+      uint16_t rx_buf[ARRAY_SIZE(tx_buf)] = { 0 };
+      unsigned int gpio_pin_res;
+      unsigned int gpio_pin_spi_cs;
+      unsigned int gpio_pin_spi_int;
+      int ret;
 
-    spi_transfer (fd_SPI_BB, GPIO_SPI_CS_Ch1 ,tx_buf, rx_buf, sizeof(tx_buf), 0);
+      if( compare_settings == 0 ){
+    	  uint8_t i, number_ch;
 
-    if(rx_buf[0]==0x0001){
-    	//сделать запись  в лог файл
-    	printf("Set settings Input switch: OK");
-    }else{
-    	printf("Set settings Input switch: FOULT");
-    }
+    	  for ( i=0, number_ch=0  ; i < quantity_channels; i++, number_ch++ ){
+
+    		  switch (number_ch) {
+    		  	  case 0:
+    		  		  gpio_pin_res = GPIO_SPI_Reset_Ch1;
+    		  		  gpio_pin_spi_cs = GPIO_SPI_CS_Ch1;
+    		  		  gpio_pin_spi_int = GPIO_SPI_INT_Ch1;
+    		  		  break;
+    		  	  case 1:
+    		  		  gpio_pin_res = GPIO_SPI_Reset_Ch2;
+    		  		  gpio_pin_spi_cs = GPIO_SPI_CS_Ch2;
+    		  		  gpio_pin_spi_int = GPIO_SPI_INT_Ch2;
+    		  		  break;
+    		  	  case 2:
+    		  		  gpio_pin_res = GPIO_SPI_Reset_Ch3;
+    		  		  gpio_pin_spi_cs = GPIO_SPI_CS_Ch3;
+    		  		  gpio_pin_spi_int = GPIO_SPI_INT_Ch3;
+    		  		  break;
+    		  }
+
+    		  //Check on/off channel
+    		  if ( settings_old[number_ch].mode == 1 ){
+    			  enable_analog_channel (gpio_pin_res);
+    		  }else{
+    			  disable_analog_channel (gpio_pin_res);
+    			  continue;
+    		  }
+
+    		  // Write Input switching setting
+    		  if(settings_old[number_ch].config_ch.input==inp_1_1){
+    			  tx_buf[0]=0x0100;
+    		  }else if(settings_old[number_ch].config_ch.input==inp_1_10){
+    			  tx_buf[0]=0x0101;
+    		  }else if(settings_old[number_ch].config_ch.input==inp_0V){
+    			  tx_buf[0]=0x0102;
+    		  }else if(settings_old[number_ch].config_ch.input==inp_cal){
+    			  tx_buf[0]=0x0103;
+    		  }else if(settings_old[number_ch].config_ch.input==z_state){
+    			  tx_buf[0]=0x0104;
+    		  }
+
+    		  ret = spi_transfer_command_analog_ch ( fd_SPI, gpio_pin_spi_cs, gpio_pin_spi_int, tx_buf,rx_buf,  sizeof(tx_buf), 0 );
+
+    		  if ( ret == -1 || rx_buf[0] != 0x0001){
+    			  //сделать запись в лог файл
+    			  printf("Set settings Input switch: FOULT");
+    			  return -1;
+    		  } else {
+    			  //сделать запись  в лог файл
+    			  printf("Set settings Input switch: OK");
+    		  }
+
+    		  //Write amplifier KU1
+
+
+        }
+
+
+
+      } else if( compare_settings == 1 ){
+		// сравниваем новый конфиг и старый.
+
+      }
+
+	}
+
 
 
 
@@ -131,18 +174,12 @@ static void pabort(const char *s){
     }
 */
 
-	//reset_analog_channel(GPIO_SPI_Reset_Ch1);
-	//disable_analog_channel(GPIO_SPI_Reset_Ch2);
+	//printf("> ");
 
-	printf("> ");
+	//fgets(console_buffer, sizeof(console_buffer), stdin);
 
-	fgets(console_buffer, sizeof(console_buffer), stdin);
+	//printf("%s",console_buffer);
 
-	printf("%s",console_buffer);
-
-	// написать прием строки из терминала
-	// написать обработчик команд с терминала
-	// написать отправку команд в BB
 
 /*
 	uint16_t tx_buf[] = {0x0104,0x0000};
