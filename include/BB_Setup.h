@@ -15,8 +15,7 @@
 /****************************************************
 *                 Constants                         *
 ****************************************************/
-//Area size for console parser function
-#define CONSOLE_MAS_SIZE 13
+
 
 //list for output pins for seismic station KTIVT
 typedef enum {

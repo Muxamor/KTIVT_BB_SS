@@ -17,7 +17,7 @@
 //#include <getopt.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
-//#include <linux/types.h>
+#include <linux/types.h>
 #include <linux/spi/spidev.h>
 #include "../include/SPI_SS.h"
 #include "../include/GPIO_SS.h"
@@ -62,9 +62,8 @@ int spi_transfer_command_analog_ch ( int fd, uint16_t SPI_channel, uint16_t SPI_
 
     if( ret == -1 ){
        	return -1;
-    }else{
-       	return 0;
     }
+
     /// сделать тайм аут на ожидание ответа посылать 3 раза если ответ нету и истек тайм аут
     while((gpio_get_value_interrupt(fd_GPIO_pin_input[SPI_channel_int],0)) != 1);
 
@@ -75,9 +74,9 @@ int spi_transfer_command_analog_ch ( int fd, uint16_t SPI_channel, uint16_t SPI_
 
     if( ret == -1 ){
     	return -1;
-    }else{
-    	return 0;
     }
+
+    return 0;
 
 }
 

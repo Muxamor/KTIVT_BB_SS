@@ -11,6 +11,7 @@
 
 #include <stdio.h>
 #include <unistd.h>
+#include <stdint.h>
 #include "../include/GPIO_SS.h"
 #include "../include/BB_Setup.h"
 
@@ -91,9 +92,9 @@ int Default_Setup_GPIO_BB (void){
 	gpio_set_value(fd_GPIO_pin_output[GPIO_SPI_CS_Disp] , HIGHT);
 	gpio_set_value(fd_GPIO_pin_output[GPIO_SPI_CS_Col], HIGHT);
 	gpio_set_value(fd_GPIO_pin_output[GPIO_Sync_Ch1_Ch2_Ch3], HIGHT);// Проверить возможно  нужно по умолчанию ставить в ноль!!!!
-	gpio_set_value(fd_GPIO_pin_output[GPIO_SPI_Reset_Ch1], HIGHT); //Disable analog channel 1
-	gpio_set_value(fd_GPIO_pin_output[GPIO_SPI_Reset_Ch2], HIGHT); //Disable analog channel 1
-	gpio_set_value(fd_GPIO_pin_output[GPIO_SPI_Reset_Ch3], HIGHT); //Disable analog channel 1
+	gpio_set_value(fd_GPIO_pin_output[GPIO_SPI_Reset_Ch1], LOW); //Disable analog channel 1
+	gpio_set_value(fd_GPIO_pin_output[GPIO_SPI_Reset_Ch2], LOW); //Disable analog channel 1
+	gpio_set_value(fd_GPIO_pin_output[GPIO_SPI_Reset_Ch3], LOW); //Disable analog channel 1
 
 	printf("Set default value gpio - SUCCESS!\n");
 
@@ -108,9 +109,9 @@ int Default_Setup_GPIO_BB (void){
 /*********************************************
  * Enable analog channel
  ********************************************/
-int enable_analog_channel (unsigned int gpio){
+int enable_analog_channel (gpio_name_output_pin  gpio_name){
 
-		gpio_set_value(fd_GPIO_pin_output[gpio] , LOW);
+		gpio_set_value(fd_GPIO_pin_output[gpio_name] , LOW);
 
 	return 0;
 }
@@ -118,9 +119,9 @@ int enable_analog_channel (unsigned int gpio){
 /*********************************************
  * Disable analog channel
  ********************************************/
-int disable_analog_channel (unsigned int gpio){
+int disable_analog_channel (gpio_name_output_pin  gpio_name){
 
-		gpio_set_value(fd_GPIO_pin_output[gpio] , HIGHT);
+		gpio_set_value(fd_GPIO_pin_output[gpio_name] , HIGHT);
 
 	return 0;
 }
@@ -128,14 +129,15 @@ int disable_analog_channel (unsigned int gpio){
 /*********************************************
  * Reset  analog channel
  ********************************************/
-int reset_analog_channel (unsigned int gpio){
+int reset_analog_channel (gpio_name_output_pin  gpio_name){
 
-	gpio_set_value(fd_GPIO_pin_output[gpio] , HIGHT);
+	gpio_set_value(fd_GPIO_pin_output[gpio_name] , HIGHT);
 	usleep(5);
-	gpio_set_value(fd_GPIO_pin_output[gpio] , LOW);
+	gpio_set_value(fd_GPIO_pin_output[gpio_name] , LOW);
 
 	return 0;
 }
+
 
 
 

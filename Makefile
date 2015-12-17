@@ -25,7 +25,8 @@ DEPS = \
  include/GPIO_SS.h\
  include/BB_Setup.h\
  include/SPI_SS.h\
- include/Config_pars.h
+ include/Config_pars.h\
+ include/analog_ch_setup.h
 
 # Compiler object files 
 COBJ = \
@@ -33,7 +34,8 @@ COBJ = \
  $(OBJDIR)/GPIO_SS.o\
  $(OBJDIR)/BB_Setup.o\
  $(OBJDIR)/SPI_SS.o\
- $(OBJDIR)/Config_pars.o
+ $(OBJDIR)/Config_pars.o\
+ $(OBJDIR)/analog_ch_setup.o
 
 # gcc binaries to use. Write correct path on your OS system 
 ifeq ($(OS_SYSTEM),LINUX)

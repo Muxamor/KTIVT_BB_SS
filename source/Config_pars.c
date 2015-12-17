@@ -5,8 +5,7 @@
 
 #include "../include/Config_pars.h"
 
-static char *
-skip_spaces(char *str)
+static char *skip_spaces(char *str)
 {
     char accept[] = " \t\n";
     int offset = strspn(str, accept);
@@ -111,8 +110,8 @@ typedef struct
 } description_t;
 
 static description_t options[] = {
-	  { 1, "Mode",    0, 0, 0 },
-	  { 2, "State",   0, 0, 0 },
+	{ 1, "Mode",    0, 0, 0 },
+	{ 2, "State",   0, 0, 0 },
     { 3, "Input",   0, 0, 0 },
     { 4, "KU1",     1, 10, 0 },
     { 5, "Fcut",    1, 10, 0 },
