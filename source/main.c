@@ -73,7 +73,7 @@ static void pabort(const char *s){
 
 	//Чтение конфига и обратбота
 
-    FILE *fd_config_file = fopen("KTIVT_BB_SS.conf", "r");
+    FILE *fd_config_file = fopen("/kti_bb_ss/KTIVT_BB_SS.conf", "r");
     if(fd_config_file==NULL){
     	//сделать запись в лог фаил
     	printf("Configure file is not found\n");
