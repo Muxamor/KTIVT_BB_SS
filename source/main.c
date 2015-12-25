@@ -25,7 +25,7 @@
 #include "../include/SPI_SS.h"
 #include "../include/BB_Setup.h"
 #include "../include/Config_pars.h"
-//#include "../include/analog_ch_setup.h"
+#include "../include/analog_ch_setup.h"
 
 
 /*Спшуля писала

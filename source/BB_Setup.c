@@ -16,6 +16,13 @@
 #include "../include/BB_Setup.h"
 
 
+
+// Area for file descriptors of GPIO
+unsigned int fd_GPIO_pin_output[ GPIO_out_MAX ];
+unsigned int fd_GPIO_pin_input[ GPIO_in_MAX ];
+
+
+
 /*********************************************
  * Default GPIO settings for BB
  ********************************************/

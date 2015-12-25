@@ -48,8 +48,8 @@ static unsigned int gpio_input_pin_numbers[GPIO_in_MAX] = { 7, 26, 27 };
 
 
 // Area for file descriptors of GPIO
-unsigned int fd_GPIO_pin_output[ GPIO_out_MAX ];
-unsigned int fd_GPIO_pin_input[ GPIO_in_MAX ];
+extern unsigned int fd_GPIO_pin_output[ GPIO_out_MAX ];
+extern unsigned int fd_GPIO_pin_input[ GPIO_in_MAX ];
 
 
 

@@ -11,7 +11,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include "../include/BB_Setup.h"
-//#include "../include/SPI_SS.h"
+#include "../include/SPI_SS.h"
 #include "../include/Config_pars.h"
 #include "../include/analog_ch_setup.h"
 
@@ -273,6 +273,9 @@
           gpio_name_output_pin gpio_pin_res;
           gpio_name_output_pin gpio_pin_spi_cs;
           gpio_name_output_pin gpio_pin_spi_int;
+          gpio_name_output_pin gpio_pin_res_array[] = { GPIO_SPI_Reset_Ch1, GPIO_SPI_Reset_Ch2, GPIO_SPI_Reset_Ch3 };
+          gpio_name_output_pin gpio_pin_spi_cs_array[] = { GPIO_SPI_CS_Ch1, GPIO_SPI_CS_Ch2, GPIO_SPI_CS_Ch3 };
+          gpio_name_output_pin gpio_pin_spi_int_array[] = { GPIO_SPI_INT_Ch1, GPIO_SPI_INT_Ch2, GPIO_SPI_INT_Ch3 };
           int ret;
 
           if( compare_settings == 0 ){
@@ -280,23 +283,9 @@
 
         	  for ( i=0, number_ch=0  ; i < quantity_channels; i++, number_ch++ ){
 
-        		  switch (number_ch) {
-        		  	  case 0:
-        		  		  gpio_pin_res = GPIO_SPI_Reset_Ch1;
-        		  		  gpio_pin_spi_cs = GPIO_SPI_CS_Ch1;
-        		  		  gpio_pin_spi_int = GPIO_SPI_INT_Ch1;
-        		  		  break;
-        		  	  case 1:
-        		  		  gpio_pin_res = GPIO_SPI_Reset_Ch2;
-        		  		  gpio_pin_spi_cs = GPIO_SPI_CS_Ch2;
-        		  		  gpio_pin_spi_int = GPIO_SPI_INT_Ch2;
-        		  		  break;
-        		  	  case 2:
-        		  		  gpio_pin_res = GPIO_SPI_Reset_Ch3;
-        		  		  gpio_pin_spi_cs = GPIO_SPI_CS_Ch3;
-        		  		  gpio_pin_spi_int = GPIO_SPI_INT_Ch3;
-        		  		  break;
-        		  }
+        		  gpio_pin_res = gpio_pin_res_array[number_ch];
+        		  gpio_pin_spi_cs = gpio_pin_spi_cs_array[number_ch];
+        		  gpio_pin_spi_int = gpio_pin_spi_int_array[number_ch];
 
         		  //Check on/off channel
         		  if ( settings_old[number_ch].mode == 1 ){
@@ -339,6 +328,7 @@
         		  if(ret != 0){
         			  return -1;
         		  }
+        		  //дописать старт стоп
 
         		  //ДОПИСАТЬ ОСТАЛЬНЫЕ КОМАНДЫ
 

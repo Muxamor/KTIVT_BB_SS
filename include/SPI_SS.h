@@ -13,6 +13,7 @@
 #ifndef INCLUDE_SPI_SS_H_
 #define INCLUDE_SPI_SS_H_
 #include <stdint.h>
+#include <linux/spi/spidev.h>
 
 int fd_SPI_BB;
 struct spi_ioc_transfer SPI_trunsfer_struct;
