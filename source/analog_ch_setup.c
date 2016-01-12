@@ -17,6 +17,32 @@
 
 #define size_spi_tx_rx_buf_u16 2
 
+ int write_a_ch_start_stop (int fd_SPI, uint16_t gpio_spi_cs, uint16_t gpio_spi_int, uint8_t start_stop,  uint8_t number_channel){
+
+	uint16_t tx_buf[size_spi_tx_rx_buf_u16] = { 0 };
+	uint16_t rx_buf[size_spi_tx_rx_buf_u16] = { 0 };
+	int ret;
+
+	if(start_stop == 0 ){ //State stop
+		tx_buf[0]=0x2104;
+	}else if( start_stop == 1 ){ //State start
+		tx_buf[0]=0x2101;
+ 	}
+
+	tx_buf[1]=0x0000;
+
+	ret = spi_transfer_command_analog_ch ( fd_SPI, gpio_spi_cs, gpio_spi_int, tx_buf,rx_buf, sizeof(tx_buf), 0 );
+
+	if ( ret == -1 || rx_buf[0] != 0x0001){
+		//сделать запись в лог файл
+		printf("Ch%d send command START/STOP : FOULT  SPI error \n", number_channel+1 );
+		return -1;
+	}
+
+	return 0;
+
+ }
+
  int write_a_ch_input_switch(int fd_SPI, uint16_t gpio_spi_cs, uint16_t gpio_spi_int, struct settings_ch *settings_channel, uint8_t number_channel){
 
 	uint16_t tx_buf[size_spi_tx_rx_buf_u16] = { 0 };
@@ -264,7 +290,7 @@
 
 
 
- int parse_sent_settings (int fd_SPI, struct settings_ch *settings_old, struct settings_ch *settings_new, uint8_t compare_settings, uint8_t quantity_channels){
+ int parse_sent_settings (int fd_SPI, struct settings_ch *settings_old, struct settings_ch *settings_new, uint16_t size_settings, uint8_t compare_settings, uint8_t quantity_channels){
 
           uint8_t apply_settings[ quantity_channels ];
 
@@ -328,13 +354,137 @@
         		  if(ret != 0){
         			  return -1;
         		  }
-        		  //дописать старт стоп
+
+        		  // Send state: Start
+        		  if ( settings_old[number_ch].state == 1 ){
+
+        			  write_a_ch_start_stop (fd_SPI, gpio_pin_spi_cs, gpio_pin_spi_int, 1,  number_ch);
+        			  if(ret != 0){
+        				  return -1;
+        			  }
+        			  printf("Ch%d state: START\n", number_ch+1);
+        			  //сделать запись  в лог файл
+        		  }else{
+        			  printf("Ch%d state: STOP\n", number_ch+1);
+        			  //сделать запись  в лог файл
+        		  }
 
         		  //ДОПИСАТЬ ОСТАЛЬНЫЕ КОМАНДЫ
 
         	  }
 
           } else if( compare_settings == 1 ){
+
+        	  uint8_t i, number_ch;
+
+        	  printf("\n--------------------------Reconfigure analog channels.--------------------------\n" );
+
+        	  for ( i=0, number_ch=0  ; i < quantity_channels; i++, number_ch++ ){
+
+        		  gpio_pin_res = gpio_pin_res_array[number_ch];
+        		  gpio_pin_spi_cs = gpio_pin_spi_cs_array[number_ch];
+        		  gpio_pin_spi_int = gpio_pin_spi_int_array[number_ch];
+
+
+        		  if( memcmp(&settings_old[number_ch], &settings_new[number_ch], size_settings) ==0) {
+        			  printf("\nCh%d The same settings as before.\n", number_ch+1 );
+        			 continue;
+        		  }
+
+        		  //Check on/off channel
+        		 // settings_old[number_ch].mode = settings_new[number_ch].mode;
+
+        		  if ( settings_new[number_ch].mode == 1 ){
+        			  enable_analog_channel (gpio_pin_res); //не звбыть написать эту настройку в стуртуруту old в конце
+        			  //сделать запись в лог файл
+        			  printf("\nCh%d Mode: ON\n", number_ch+1 );
+        		  }else{
+        			  disable_analog_channel (gpio_pin_res);
+        			  settings_old[number_ch].mode = settings_new[number_ch].mode;
+        			  printf("\nCh%d Mode: OFF\n", number_ch+1 );
+        			  continue;
+        		  }
+
+        		  // Send state: Stop
+        		  if ( settings_old[number_ch].state == 1 && settings_old[number_ch].mode == 1 ){
+        			  settings_old[number_ch].state = 0; // write stop state to old settings
+        			  write_a_ch_start_stop (fd_SPI, gpio_pin_spi_cs, gpio_pin_spi_int, 0,  number_ch);
+        			  if(ret != 0){
+        				  return -1;
+        			  }
+        		  }
+
+        		  // Write Input switching setting
+				  if(settings_old[number_ch].config_ch.input != settings_new[number_ch].config_ch.input || settings_old[number_ch].mode == 0 ){
+
+					  settings_old[number_ch].config_ch.input = settings_new[number_ch].config_ch.input;
+
+					  ret = write_a_ch_input_switch(fd_SPI, gpio_pin_spi_cs, gpio_pin_spi_int, settings_old, number_ch);
+					  if(ret != 0){
+						  return -1;
+					  }
+				  }
+
+				  //Write amplifier KU1
+				  if(settings_old[number_ch].config_ch.ku1 != settings_new[number_ch].config_ch.ku1 || settings_old[number_ch].mode == 0){
+
+					  settings_old[number_ch].config_ch.ku1 = settings_new[number_ch].config_ch.ku1;
+
+					  ret = write_a_ch_amplifier_ku1(fd_SPI, gpio_pin_spi_cs, gpio_pin_spi_int, settings_old, number_ch);
+					  if(ret != 0){
+						  return -1;
+					  }
+				  }
+
+				  //Write The cutoff frequency of the LPF
+				  if(settings_old[number_ch].config_ch.fcut != settings_new[number_ch].config_ch.fcut || settings_old[number_ch].mode == 0){
+
+					  settings_old[number_ch].config_ch.fcut = settings_new[number_ch].config_ch.fcut;
+
+					  ret = write_a_ch_cutoff_freq_LPF(fd_SPI, gpio_pin_spi_cs, gpio_pin_spi_int, settings_old, number_ch);
+					  if(ret != 0){
+						  return -1;
+					  }
+				  }
+
+				  //Write amplifier KU2
+				  if(settings_old[number_ch].config_ch.ku2 != settings_new[number_ch].config_ch.ku2 || settings_old[number_ch].mode == 0){
+
+					  settings_old[number_ch].config_ch.ku2 = settings_new[number_ch].config_ch.ku2;
+
+					  ret = write_a_ch_amplifier_ku2(fd_SPI, gpio_pin_spi_cs, gpio_pin_spi_int, settings_old, number_ch);
+					  if(ret != 0){
+						  return -1;
+					  }
+				  }
+
+				  //Sampling frequency Fd
+				  if(settings_old[number_ch].config_ch.fd != settings_new[number_ch].config_ch.fd || settings_old[number_ch].mode == 0){
+
+					  settings_old[number_ch].config_ch.fd = settings_new[number_ch].config_ch.fd;
+
+					  ret = write_a_ch_sampling_freq_Fd(fd_SPI, gpio_pin_spi_cs, gpio_pin_spi_int, settings_old, number_ch);
+					  if(ret != 0){
+						  return -1;
+					  }
+				  }
+
+				  // Send state: Start
+			      if ( settings_new[number_ch].state == 1 ){
+			    	  settings_old[number_ch].state = settings_new[number_ch].state;
+			    	  write_a_ch_start_stop (fd_SPI, gpio_pin_spi_cs, gpio_pin_spi_int, 1,  number_ch);
+			    	  if(ret != 0){
+			    		  return -1;
+			    	  }
+			    	  printf("Ch%d state: START\n", number_ch+1);
+			    	  //сделать запись  в лог файл
+			      }else{
+			    	  printf("Ch%d state: STOP\n", number_ch+1);
+			    	  //сделать запись  в лог файл
+			      }
+
+        	  }
+
 
 
     		// сравниваем новый конфиг и старый.

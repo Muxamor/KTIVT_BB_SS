@@ -73,24 +73,49 @@ static void pabort(const char *s){
 
 	//Чтение конфига и обратбота
 
+    struct settings_ch cfg_ch_old[3] = {0};
+    struct settings_ch cfg_ch_new[3] = {0};
+
+
     FILE *fd_config_file = fopen("/kti_bb_ss/KTIVT_BB_SS.conf", "r");
     if(fd_config_file==NULL){
     	//сделать запись в лог фаил
     	printf("Configure file is not found\n");
     	return EXIT_FAILURE;
     }
-    struct settings_ch cfg_ch_old[3];
-    struct settings_ch cfg_ch_new[3];
-    printf("\n");
+
     // read config
     parse_config(fd_config_file, cfg_ch_old, 3);
+    fclose(fd_config_file);
+
+    fd_config_file = fopen("/kti_bb_ss/KTIVT_BB_SSnew.conf", "r");
+    if(fd_config_file==NULL){
+    	//сделать запись в лог фаил
+    	printf("Configure file is not found\n");
+    	return EXIT_FAILURE;
+    }
+
+    // read config
+    parse_config(fd_config_file, cfg_ch_new, 3);
+    fclose(fd_config_file);
+
     //sent settings to analog channel
-    parse_sent_settings (fd_SPI_BB, cfg_ch_old, cfg_ch_new, 0, 3);
+	parse_sent_settings (fd_SPI_BB, cfg_ch_old, cfg_ch_new, sizeof(cfg_ch_old[0]) ,0, 3);
 
+	parse_sent_settings (fd_SPI_BB, cfg_ch_old, cfg_ch_new, sizeof(cfg_ch_old[0]) ,1, 3);
+/*
+    int testmemcmp;
 
+    testmemcmp = memcmp(&cfg_ch_old[0], &cfg_ch_new[0], sizeof(cfg_ch_old[1]) );
 
+    if (testmemcmp == 0){
+    	printf("massive same\n");
 
+    }else{
 
+    	printf("massive not same\n");
+    }
+*/
 
 
     //добавить обработку полученных настроек обработку полученных настроек
