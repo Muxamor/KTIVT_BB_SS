@@ -17,15 +17,15 @@
 
 #define size_spi_tx_rx_buf_u16 2
 
- int write_a_ch_start_stop (int fd_SPI, uint16_t gpio_spi_cs, uint16_t gpio_spi_int, uint8_t start_stop,  uint8_t number_channel){
+ int write_a_ch_start_stop (int fd_SPI, uint16_t gpio_spi_cs, uint16_t gpio_spi_int, struct settings_ch *settings_channel,  uint8_t number_channel){
 
 	uint16_t tx_buf[size_spi_tx_rx_buf_u16] = { 0 };
 	uint16_t rx_buf[size_spi_tx_rx_buf_u16] = { 0 };
 	int ret;
 
-	if(start_stop == 0 ){ //State stop
+	if(settings_channel[number_channel].state == 0 ){ //State stop
 		tx_buf[0]=0x2104;
-	}else if( start_stop == 1 ){ //State start
+	}else if( settings_channel[number_channel].state == 1 ){ //State start
 		tx_buf[0]=0x2101;
  	}
 
@@ -358,7 +358,7 @@
         		  // Send state: Start
         		  if ( settings_old[number_ch].state == 1 ){
 
-        			  write_a_ch_start_stop (fd_SPI, gpio_pin_spi_cs, gpio_pin_spi_int, 1,  number_ch);
+        			  write_a_ch_start_stop (fd_SPI, gpio_pin_spi_cs, gpio_pin_spi_int, settings_old,  number_ch);
         			  if(ret != 0){
         				  return -1;
         			  }
@@ -387,28 +387,30 @@
 
 
         		  if( memcmp(&settings_old[number_ch], &settings_new[number_ch], size_settings) ==0) {
+        			  //сделать запись в лог файл
         			  printf("\nCh%d The same settings as before.\n", number_ch+1 );
         			 continue;
         		  }
 
         		  //Check on/off channel
-        		 // settings_old[number_ch].mode = settings_new[number_ch].mode;
 
         		  if ( settings_new[number_ch].mode == 1 ){
-        			  enable_analog_channel (gpio_pin_res); //не звбыть написать эту настройку в стуртуруту old в конце
+        			  enable_analog_channel (gpio_pin_res);
+        			  //Write to the old configuration structure in the end of the cycle for
         			  //сделать запись в лог файл
         			  printf("\nCh%d Mode: ON\n", number_ch+1 );
         		  }else{
         			  disable_analog_channel (gpio_pin_res);
         			  settings_old[number_ch].mode = settings_new[number_ch].mode;
+        			  //сделать запись в лог файл
         			  printf("\nCh%d Mode: OFF\n", number_ch+1 );
         			  continue;
         		  }
 
         		  // Send state: Stop
-        		  if ( settings_old[number_ch].state == 1 && settings_old[number_ch].mode == 1 ){
+        		  if ( settings_old[number_ch].state == 1 && settings_old[number_ch].mode == 1 ){//Channel was start and ON
         			  settings_old[number_ch].state = 0; // write stop state to old settings
-        			  write_a_ch_start_stop (fd_SPI, gpio_pin_spi_cs, gpio_pin_spi_int, 0,  number_ch);
+        			  write_a_ch_start_stop (fd_SPI, gpio_pin_spi_cs, gpio_pin_spi_int, settings_old,  number_ch);//send stop state to send settings to channel
         			  if(ret != 0){
         				  return -1;
         			  }
@@ -469,10 +471,15 @@
 					  }
 				  }
 
+				  //ДОПИСАТЬ ОСТАЛЬНЫЕ КОМАНДЫ
+
+				  //Save mode from new to old settings
+				  settings_old[number_ch].mode = settings_new[number_ch].mode;
+
 				  // Send state: Start
 			      if ( settings_new[number_ch].state == 1 ){
 			    	  settings_old[number_ch].state = settings_new[number_ch].state;
-			    	  write_a_ch_start_stop (fd_SPI, gpio_pin_spi_cs, gpio_pin_spi_int, 1,  number_ch);
+			    	  write_a_ch_start_stop (fd_SPI, gpio_pin_spi_cs, gpio_pin_spi_int, settings_old,  number_ch);
 			    	  if(ret != 0){
 			    		  return -1;
 			    	  }
@@ -484,10 +491,6 @@
 			      }
 
         	  }
-
-
-
-    		// сравниваем новый конфиг и старый.
 
           }
           return 0;
