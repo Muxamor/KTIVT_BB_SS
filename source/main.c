@@ -26,6 +26,7 @@
 #include "../include/BB_Setup.h"
 #include "../include/Config_pars.h"
 #include "../include/analog_ch_setup.h"
+#include "../include/M41T64_Clock.h"
 
 
 /*Спшуля писала
@@ -58,7 +59,6 @@ static void pabort(const char *s){
 
 	char console_buffer[30];
 
-
 	int ret=0;
     uint32_t i;
 
@@ -68,10 +68,16 @@ static void pabort(const char *s){
 		return EXIT_FAILURE;
 	}
 
+	ret = Defult_setup_M41T64(I2C_BUS_NUMBER, ADDR_I2C_SLAVE_M41T64);
+	if (ret==-1){
+		perror("Defult_setup_M41T64() - FAILUR");
+		return EXIT_FAILURE;
+	}
+
 	fd_SPI_BB = spi_device_open("/dev/spidev1.0");
 	set_spi_settings(fd_SPI_BB, SPI_MODE_1, 16 , 18000000);
 
-	//Чтение конфига и обратбота
+	//Read file configuration and pars
 
     struct settings_ch cfg_ch_old[3] = {0};
     struct settings_ch cfg_ch_new[3] = {0};
@@ -100,9 +106,18 @@ static void pabort(const char *s){
     fclose(fd_config_file);
 
     //sent settings to analog channel
-	parse_sent_settings (fd_SPI_BB, cfg_ch_old, cfg_ch_new, sizeof(cfg_ch_old[0]) ,0, 3);
+    ret = parse_sent_settings (fd_SPI_BB, cfg_ch_old, cfg_ch_new, sizeof(cfg_ch_old[0]) ,0, 3);
+	if (ret==-1){
+		perror("parse_sent_settings() - FAILUR");
+		return EXIT_FAILURE;
+	}
 
-	parse_sent_settings (fd_SPI_BB, cfg_ch_old, cfg_ch_new, sizeof(cfg_ch_old[0]) ,1, 3);
+	ret = parse_sent_settings (fd_SPI_BB, cfg_ch_old, cfg_ch_new, sizeof(cfg_ch_old[0]) ,1, 3);
+	if (ret==-1){
+		perror("parse_sent_settings() - FAILUR");
+		return EXIT_FAILURE;
+	}
+
 /*
     int testmemcmp;
 

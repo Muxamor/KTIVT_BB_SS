@@ -14,6 +14,7 @@
 #include "../include/SPI_SS.h"
 #include "../include/Config_pars.h"
 #include "../include/analog_ch_setup.h"
+#include "../include/M41T64_Clock.h"
 
 #define size_spi_tx_rx_buf_u16 2
 
@@ -263,8 +264,8 @@
  		tx_buf[0]=0x0903;
  	}else if( settings_channel[number_channel].config_ch.fd == 1024 ){
  		tx_buf[0]=0x0904;
- 	}else if( settings_channel[number_channel].config_ch.fd == 2048 ){
- 		tx_buf[0]=0x0905;
+ 	//}else if( settings_channel[number_channel].config_ch.fd == 2048 ){
+ 		//tx_buf[0]=0x0905;
  	}else if( settings_channel[number_channel].config_ch.fd == 4096 ){
  		tx_buf[0]=0x0906;
  	}else{
@@ -293,7 +294,7 @@
  int parse_sent_settings (int fd_SPI, struct settings_ch *settings_old, struct settings_ch *settings_new, uint16_t size_settings, uint8_t compare_settings, uint8_t quantity_channels){
 
           uint8_t apply_settings[ quantity_channels ];
-
+          uint8_t i, number_ch;
          // uint16_t tx_buf[size_spi_tx_rx_buf_u16] = { 0 };
          // uint16_t rx_buf[size_spi_tx_rx_buf_u16] = { 0 };
           gpio_name_output_pin gpio_pin_res;
@@ -305,7 +306,7 @@
           int ret;
 
           if( compare_settings == 0 ){
-        	  uint8_t i, number_ch;
+
 
         	  for ( i=0, number_ch=0  ; i < quantity_channels; i++, number_ch++ ){
 
@@ -354,6 +355,10 @@
         		  if(ret != 0){
         			  return -1;
         		  }
+        		  ret = M41T64_set_SQW_clock (I2C_BUS_NUMBER, settings_old[number_ch].config_ch.fd, ADDR_I2C_SLAVE_M41T64);
+        		  if(ret != 0){
+        			  return -1;
+        		  }
 
         		  // Send state: Start
         		  if ( settings_old[number_ch].state == 1 ){
@@ -374,8 +379,6 @@
         	  }
 
           } else if( compare_settings == 1 ){
-
-        	  uint8_t i, number_ch;
 
         	  printf("\n--------------------------Reconfigure analog channels.--------------------------\n" );
 
@@ -466,6 +469,10 @@
 					  settings_old[number_ch].config_ch.fd = settings_new[number_ch].config_ch.fd;
 
 					  ret = write_a_ch_sampling_freq_Fd(fd_SPI, gpio_pin_spi_cs, gpio_pin_spi_int, settings_old, number_ch);
+					  if(ret != 0){
+						  return -1;
+					  }
+					  ret = M41T64_set_SQW_clock(I2C_BUS_NUMBER, settings_old[number_ch].config_ch.fd, ADDR_I2C_SLAVE_M41T64);
 					  if(ret != 0){
 						  return -1;
 					  }
