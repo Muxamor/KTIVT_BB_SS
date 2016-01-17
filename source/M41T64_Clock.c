@@ -75,7 +75,7 @@ int Defult_setup_M41T64(uint8_t i2c_port, int addr_slave ){
 	}
 
 	close(fd_i2c);
-
+	printf("Setup default M41T64 - SUCCESS!\n");
 	return 0;
 
 }
@@ -159,6 +159,7 @@ int M41T64_set_SQW_clock (uint8_t i2c_port, uint16_t clock_SQW, int addr_slave )
 			}
 
 			close(fd_i2c);
+
 		return 0;
 
 

@@ -318,6 +318,7 @@
         		  if ( settings_old[number_ch].mode == 1 ){
         			  enable_analog_channel (gpio_pin_res);
         			  //сделать запись в лог файл
+        			  usleep(500);//wait until STM32F103 in analog channel loaded
         			  printf("\nCh%d Mode: ON\n", number_ch+1 );
         		  }else{
         			  disable_analog_channel (gpio_pin_res);
@@ -387,7 +388,7 @@
         		  gpio_pin_res = gpio_pin_res_array[number_ch];
         		  gpio_pin_spi_cs = gpio_pin_spi_cs_array[number_ch];
         		  gpio_pin_spi_int = gpio_pin_spi_int_array[number_ch];
-
+        		  printf("\n");
 
         		  if( memcmp(&settings_old[number_ch], &settings_new[number_ch], size_settings) ==0) {
         			  //сделать запись в лог файл
@@ -397,17 +398,21 @@
 
         		  //Check on/off channel
 
-        		  if ( settings_new[number_ch].mode == 1 ){
+        		  if ( settings_new[number_ch].mode == 1 && settings_old[number_ch].mode == 0 ){
         			  enable_analog_channel (gpio_pin_res);
         			  //Write to the old configuration structure in the end of the cycle for
         			  //сделать запись в лог файл
+        			  usleep(500);//wait until STM32F103 in analog channel loaded
         			  printf("\nCh%d Mode: ON\n", number_ch+1 );
-        		  }else{
+        		  }else if( settings_new[number_ch].mode == 0){
         			  disable_analog_channel (gpio_pin_res);
         			  settings_old[number_ch].mode = settings_new[number_ch].mode;
         			  //сделать запись в лог файл
         			  printf("\nCh%d Mode: OFF\n", number_ch+1 );
         			  continue;
+        		  }
+        		  if(settings_old[number_ch].mode == 1){
+        			  printf("\nCh%d Mode: ON\n", number_ch+1 );
         		  }
 
         		  // Send state: Stop
