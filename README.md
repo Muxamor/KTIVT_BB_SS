@@ -1,2 +1,3 @@
 # KTIVT_BB_SS
-Program for seismic station on base BeagleBone Black
+Software management and configuration seismic station.
+Linux machine  BeagleBone Black.
