@@ -305,9 +305,9 @@
  		tx_buf[0]=0x3203;
  	}else if( settings_channel[number_channel].config_ch.fres == 16 ){
  		tx_buf[0]=0x3204;
- 	}else if( settings_channel[number_channel].config_ch.fd == 32 ){
+ 	}else if( settings_channel[number_channel].config_ch.fres== 32 ){
  		tx_buf[0]=0x3205;
- 	}else if( settings_channel[number_channel].config_ch.fd == 64 ){
+ 	}else if( settings_channel[number_channel].config_ch.fres == 64 ){
  		tx_buf[0]=0x3206;
  	}else{
  		printf("Ch%d setup software decimation Fres:: FOULT argument invalid \n", number_channel+1 );
