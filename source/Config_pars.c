@@ -116,7 +116,8 @@ static description_t options[] = {
     { 4, "KU1",     1, 10, 0 },
     { 5, "Fcut",    1, 10, 0 },
     { 6, "KU2",     1, 10, 0 },
-    { 7, "Fd",      1, 10, 0 }
+    { 7, "Fd",      1, 10, 0 },
+	{ 8, "Fres",    1, 10, 0 }
 };
 static int options_size = sizeof(options) / sizeof(options[0]);
 
@@ -214,6 +215,9 @@ int parse_config(FILE *fp, struct settings_ch *cfg, int chan_num)
             break;
         case 7:
         	cfg[chan-1].config_ch.fd = options[idx].int_val;
+            break;
+        case 8:
+            cfg[chan-1].config_ch.fres = options[idx].int_val;
             break;
         }
     }

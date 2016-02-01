@@ -10,6 +10,7 @@ struct config_t
     unsigned short fcut;
     unsigned short ku2;
     unsigned short fd;
+    unsigned short fres;
 };
 
 struct settings_ch{

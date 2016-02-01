@@ -138,6 +138,7 @@ int M41T64_set_SQW_clock (uint8_t i2c_port, uint16_t clock_SQW, int addr_slave )
 				buf[1] = 0b00010001;
  				break;
 			default:
+				buf[1] = 0b01100001; //512Hz
 				printf("Not correct value of Fd. Set 64Hz\n");
 				break;
 		}
@@ -158,9 +159,8 @@ int M41T64_set_SQW_clock (uint8_t i2c_port, uint16_t clock_SQW, int addr_slave )
 				return -1;
 			}
 
-			close(fd_i2c);
+		close(fd_i2c);
 
 		return 0;
-
 
 }

@@ -289,6 +289,45 @@
  }
 
 
+ int  write_a_ch_decimation_Fres(int fd_SPI, uint16_t gpio_spi_cs, uint16_t gpio_spi_int, struct settings_ch *settings_channel, uint8_t number_channel){
+
+ 	uint16_t tx_buf[size_spi_tx_rx_buf_u16] = { 0 };
+ 	uint16_t rx_buf[size_spi_tx_rx_buf_u16] = { 0 };
+ 	int ret;
+ //Sampling frequency Fd
+ 	if( settings_channel[number_channel].config_ch.fres == 1 ){
+ 		tx_buf[0]=0x3200;
+ 	}else if( settings_channel[number_channel].config_ch.fres == 2 ){
+ 		tx_buf[0]=0x3201;
+ 	}else if( settings_channel[number_channel].config_ch.fres == 4 ){
+ 		tx_buf[0]=0x3202;
+ 	}else if( settings_channel[number_channel].config_ch.fres == 8 ){
+ 		tx_buf[0]=0x3203;
+ 	}else if( settings_channel[number_channel].config_ch.fres == 16 ){
+ 		tx_buf[0]=0x3204;
+ 	}else if( settings_channel[number_channel].config_ch.fd == 32 ){
+ 		tx_buf[0]=0x3205;
+ 	}else if( settings_channel[number_channel].config_ch.fd == 64 ){
+ 		tx_buf[0]=0x3206;
+ 	}else{
+ 		printf("Ch%d setup software decimation Fres:: FOULT argument invalid \n", number_channel+1 );
+ 		return -1;
+ 	}
+
+ 	tx_buf[1]=0x0000;
+
+ 	ret = spi_transfer_command_analog_ch ( fd_SPI, gpio_spi_cs, gpio_spi_int, tx_buf,rx_buf, sizeof(tx_buf), 0 );
+
+ 	if ( ret == -1 || rx_buf[0] != 0x0001){
+ 		//сделать запись в лог файл
+ 		printf("Ch%d setup software decimation Fres:: FOULT SPI error\n", number_channel+1 );
+ 		return -1;
+ 	}
+ 	//сделать запись  в лог файл
+ 	printf("Ch%d setup sampling frequency Fd: OK\n", number_channel+1);
+
+ 	return 0;
+ }
 
 
  int parse_sent_settings (int fd_SPI, struct settings_ch *settings_old, struct settings_ch *settings_new, uint16_t size_settings, uint8_t compare_settings, uint8_t quantity_channels){
@@ -357,6 +396,11 @@
         			  return -1;
         		  }
         		  ret = M41T64_set_SQW_clock (I2C_BUS_NUMBER, settings_old[number_ch].config_ch.fd, ADDR_I2C_SLAVE_M41T64);
+        		  if(ret != 0){
+        			  return -1;
+        		  }
+        // Software decimation Fres:
+        		  ret = write_a_ch_decimation_Fres(fd_SPI, gpio_pin_spi_cs, gpio_pin_spi_int, settings_old, number_ch);
         		  if(ret != 0){
         			  return -1;
         		  }
@@ -482,6 +526,19 @@
 						  return -1;
 					  }
 				  }
+
+
+				  // Software decimation Fres
+				  if(settings_old[number_ch].config_ch.fres != settings_new[number_ch].config_ch.fres || settings_old[number_ch].mode == 0){
+
+					  settings_old[number_ch].config_ch.fres = settings_new[number_ch].config_ch.fres;
+
+					  ret = write_a_ch_decimation_Fres(fd_SPI, gpio_pin_spi_cs, gpio_pin_spi_int, settings_old, number_ch);
+					  if(ret != 0){
+						  return -1;
+					  }
+				  }
+
 
 				  //ДОПИСАТЬ ОСТАЛЬНЫЕ КОМАНДЫ
 

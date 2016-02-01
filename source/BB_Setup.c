@@ -135,7 +135,7 @@ int disable_analog_channel (gpio_name_output_pin  gpio_name){
 int reset_analog_channel (gpio_name_output_pin  gpio_name){
 
 	gpio_set_value(fd_GPIO_pin_output[gpio_name] , HIGHT);
-	usleep(5);
+	usleep(500);
 	gpio_set_value(fd_GPIO_pin_output[gpio_name] , LOW);
 
 	return 0;
