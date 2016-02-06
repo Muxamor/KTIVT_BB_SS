@@ -94,7 +94,7 @@ int spi_device_open(char *device){
 }
 
 
-int set_spi_settings(int fd, uint8_t mode, uint8_t bits_in_word, uint32_t speed_SPI){
+int set_spi_settings(int fd, uint8_t mode, uint8_t msb_lsb_mode,uint8_t bits_in_word, uint32_t speed_SPI){
 	int ret = 0;
 
 // Set SPI mode
@@ -110,6 +110,18 @@ int set_spi_settings(int fd, uint8_t mode, uint8_t bits_in_word, uint32_t speed_
 		abort();
 	}
 
+//Set LSB or MSB to set MSB write 0  for LSBwrite 1
+	ret = ioctl(fd, SPI_IOC_WR_LSB_FIRST, &msb_lsb_mode);
+		if (ret == -1){
+			perror("can't set bits per word");
+			abort();
+		}
+
+	ret = ioctl(fd, SPI_IOC_RD_LSB_FIRST, &msb_lsb_mode);
+		if (ret == -1){
+			perror("can't get bits per word");
+			abort();
+		}
 
 // Set bits per word for SPI
 	ret = ioctl(fd, SPI_IOC_WR_BITS_PER_WORD, &bits_in_word);

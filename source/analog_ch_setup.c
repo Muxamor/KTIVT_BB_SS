@@ -305,7 +305,7 @@
  		tx_buf[0]=0x3203;
  	}else if( settings_channel[number_channel].config_ch.fres == 16 ){
  		tx_buf[0]=0x3204;
- 	}else if( settings_channel[number_channel].config_ch.fres== 32 ){
+ 	}else if( settings_channel[number_channel].config_ch.fres == 32 ){
  		tx_buf[0]=0x3205;
  	}else if( settings_channel[number_channel].config_ch.fres == 64 ){
  		tx_buf[0]=0x3206;
@@ -405,6 +405,9 @@
         			  return -1;
         		  }
 
+
+        		  //ДОПИСАТЬ ОСТАЛЬНЫЕ КОМАНДЫ
+
         		  // Send state: Start
         		  if ( settings_old[number_ch].state == 1 ){
 
@@ -418,8 +421,6 @@
         			  printf("Ch%d state: STOP\n", number_ch+1);
         			  //сделать запись  в лог файл
         		  }
-
-        		  //ДОПИСАТЬ ОСТАЛЬНЫЕ КОМАНДЫ
 
         	  }
 

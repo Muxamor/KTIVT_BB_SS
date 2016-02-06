@@ -75,7 +75,7 @@ static void pabort(const char *s){
 	}
 
 	fd_SPI_BB = spi_device_open("/dev/spidev1.0");
-	set_spi_settings(fd_SPI_BB, SPI_MODE_1, 16 , 18000000);
+	set_spi_settings(fd_SPI_BB, SPI_MODE_1, 0, 16, 18000000);
 
 	//Read file configuration and pars
 
