@@ -264,8 +264,8 @@
  		tx_buf[0]=0x0903;
  	}else if( settings_channel[number_channel].config_ch.fd == 1024 ){
  		tx_buf[0]=0x0904;
- 	//}else if( settings_channel[number_channel].config_ch.fd == 2048 ){
- 		//tx_buf[0]=0x0905;
+ 	}else if( settings_channel[number_channel].config_ch.fd == 2048 ){
+ 		tx_buf[0]=0x0905;
  	}else if( settings_channel[number_channel].config_ch.fd == 4096 ){
  		tx_buf[0]=0x0906;
  	}else{
@@ -296,19 +296,19 @@
  	int ret;
  //Sampling frequency Fd
  	if( settings_channel[number_channel].config_ch.fres == 1 ){
- 		tx_buf[0]=0x3200;
+ 		tx_buf[0]=0x3100;
  	}else if( settings_channel[number_channel].config_ch.fres == 2 ){
- 		tx_buf[0]=0x3201;
+ 		tx_buf[0]=0x3101;
  	}else if( settings_channel[number_channel].config_ch.fres == 4 ){
- 		tx_buf[0]=0x3202;
+ 		tx_buf[0]=0x3102;
  	}else if( settings_channel[number_channel].config_ch.fres == 8 ){
- 		tx_buf[0]=0x3203;
+ 		tx_buf[0]=0x3103;
  	}else if( settings_channel[number_channel].config_ch.fres == 16 ){
- 		tx_buf[0]=0x3204;
+ 		tx_buf[0]=0x3104;
  	}else if( settings_channel[number_channel].config_ch.fres == 32 ){
- 		tx_buf[0]=0x3205;
+ 		tx_buf[0]=0x3105;
  	}else if( settings_channel[number_channel].config_ch.fres == 64 ){
- 		tx_buf[0]=0x3206;
+ 		tx_buf[0]=0x3106;
  	}else{
  		printf("Ch%d setup software decimation Fres:: FOULT argument invalid \n", number_channel+1 );
  		return -1;
@@ -357,7 +357,7 @@
         		  if ( settings_old[number_ch].mode == 1 ){
         			  enable_analog_channel (gpio_pin_res);
         			  //сделать запись в лог файл
-        			  usleep(500);//wait until STM32F103 in analog channel loaded
+        			  //sleep(1);//wait until STM32F103 in analog channel loaded
         			  printf("\nCh%d Mode: ON\n", number_ch+1 );
         		  }else{
         			  disable_analog_channel (gpio_pin_res);
@@ -391,14 +391,21 @@
         		  }
 
          //Sampling frequency Fd
-        		  ret = write_a_ch_sampling_freq_Fd(fd_SPI, gpio_pin_spi_cs, gpio_pin_spi_int, settings_old, number_ch);
+
+        		  //Note Not use all the time set 4096Hz in the main
+        		  if(settings_old[number_ch].config_ch.fd != 4096){
+        			  printf("Ch%d setup sampling frequency Fd: No correct value\n", number_ch+1 );
+        			  return -1;
+        		  }
+        		  /* ret = write_a_ch_sampling_freq_Fd(fd_SPI, gpio_pin_spi_cs, gpio_pin_spi_int, settings_old, number_ch);
         		  if(ret != 0){
         			  return -1;
         		  }
         		  ret = M41T64_set_SQW_clock (I2C_BUS_NUMBER, settings_old[number_ch].config_ch.fd, ADDR_I2C_SLAVE_M41T64);
         		  if(ret != 0){
         			  return -1;
-        		  }
+        		  } */
+
         // Software decimation Fres:
         		  ret = write_a_ch_decimation_Fres(fd_SPI, gpio_pin_spi_cs, gpio_pin_spi_int, settings_old, number_ch);
         		  if(ret != 0){
@@ -447,7 +454,7 @@
         			  enable_analog_channel (gpio_pin_res);
         			  //Write to the old configuration structure in the end of the cycle for
         			  //сделать запись в лог файл
-        			  usleep(500);//wait until STM32F103 in analog channel loaded
+        			  //sleep(1);//wait until STM32F103 in analog channel loaded
         			  printf("\nCh%d Mode: ON\n", number_ch+1 );
         		  }else if( settings_new[number_ch].mode == 0){
         			  disable_analog_channel (gpio_pin_res);
@@ -514,7 +521,13 @@
 				  }
 
 				  //Sampling frequency Fd
-				  if(settings_old[number_ch].config_ch.fd != settings_new[number_ch].config_ch.fd || settings_old[number_ch].mode == 0){
+				  //Note Not use all the time set 4096Hz in the main
+				  if(settings_new[number_ch].config_ch.fd != 4096){
+					  printf("Ch%d setup sampling frequency Fd: No correct value\n", number_ch+1 );
+					  return -1;
+				  }
+
+				  /*if(settings_old[number_ch].config_ch.fd != settings_new[number_ch].config_ch.fd || settings_old[number_ch].mode == 0){
 
 					  settings_old[number_ch].config_ch.fd = settings_new[number_ch].config_ch.fd;
 
@@ -526,7 +539,7 @@
 					  if(ret != 0){
 						  return -1;
 					  }
-				  }
+				  }*/
 
 
 				  // Software decimation Fres

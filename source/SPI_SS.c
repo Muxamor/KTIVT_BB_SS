@@ -80,6 +80,79 @@ int spi_transfer_command_analog_ch ( int fd, uint16_t SPI_channel, uint16_t SPI_
 
 }
 
+int spi_read_data_ADC24 (int fd, uint16_t SPI_channel, uint16_t SPI_channel_int, uint16_t tx_buffer[], uint16_t rx_buffer[], uint16_t size, uint16_t delay_SPI){
+
+	int ret;
+	uint32_t rest_size = 0;
+	uint32_t current_size = 0;
+	uint16_t ptr=0;
+
+
+	uint16_t tx_buf_tmp[2] = {0x2400,0x0000};
+	uint16_t rx_buf_tmp[2] = {};
+	//spi_transfer (fd_SPI_BB, SPI_channel ,tx_buf_tmp, rx_buf_tmp, sizeof(tx_buf_tmp), 0);
+
+
+	gpio_set_value(fd_GPIO_pin_output[SPI_channel] , LOW); //Enable chip select
+
+	SPI_trunsfer_struct.tx_buf=(unsigned long)tx_buf_tmp;
+	SPI_trunsfer_struct.rx_buf=(unsigned long)rx_buf_tmp;
+	SPI_trunsfer_struct.len = 4;  // Need write quantity of bits in a parcel.
+	SPI_trunsfer_struct.delay_usecs = delay_SPI;
+
+	ret = ioctl(fd, SPI_IOC_MESSAGE(1), &SPI_trunsfer_struct);
+
+	if (ret < 1){
+		return -1;
+	}
+
+	while((gpio_get_value_interrupt(fd_GPIO_pin_input[SPI_channel_int],0)) != 1);///Дописать ожидание и выдавать ошибку если прирывание не дождался
+
+	if(SIZE_HEAD_PACKAGE_ADC >= size ){
+		return -1;
+	}
+
+
+	//Read head data package
+	SPI_trunsfer_struct.tx_buf=(unsigned long)tx_buffer;
+	SPI_trunsfer_struct.rx_buf=(unsigned long)rx_buffer;
+	SPI_trunsfer_struct.len = SIZE_HEAD_PACKAGE_ADC;  // Size head of data package in byte
+	SPI_trunsfer_struct.delay_usecs = delay_SPI;
+
+	ret = ioctl(fd, SPI_IOC_MESSAGE(1), &SPI_trunsfer_struct);
+	if (ret < 1){
+			return -1;
+	}
+
+	rest_size = size - SIZE_HEAD_PACKAGE_ADC;
+	ptr = SIZE_HEAD_PACKAGE_ADC / 2;
+
+	do{
+
+		if( rest_size >= 4096){ // 4096 byte is maximal size of SPI message
+			current_size = 4096;
+		}else{
+			current_size = rest_size;
+		}
+
+		SPI_trunsfer_struct.tx_buf=(unsigned long)(&tx_buffer[ptr]);
+		SPI_trunsfer_struct.rx_buf=(unsigned long)(&rx_buffer[ptr]);
+		SPI_trunsfer_struct.len = current_size;  // Size head of data package in byte
+
+		ret = ioctl(fd, SPI_IOC_MESSAGE(1), &SPI_trunsfer_struct);
+		if (ret < 1){
+			return -1;
+		}
+		ptr = ptr + (current_size / 2);
+		rest_size = rest_size - current_size;
+
+	}while(rest_size != 0);
+
+	gpio_set_value(fd_GPIO_pin_output[SPI_channel] , HIGHT);
+
+	return 0;
+}
+
 int spi_device_open(char *device){
 
 	int fd;
@@ -94,7 +167,7 @@ int spi_device_open(char *device){
 }
 
 
-int set_spi_settings(int fd, uint8_t mode, uint8_t msb_lsb_mode,uint8_t bits_in_word, uint32_t speed_SPI){
+int set_spi_settings(int fd, uint8_t mode, uint8_t msb_lsb_mode, uint8_t bits_in_word, uint32_t speed_SPI){
 	int ret = 0;
 
 // Set SPI mode
@@ -111,15 +184,16 @@ int set_spi_settings(int fd, uint8_t mode, uint8_t msb_lsb_mode,uint8_t bits_in_
 	}
 
 //Set LSB or MSB to set MSB write 0  for LSBwrite 1
+
 	ret = ioctl(fd, SPI_IOC_WR_LSB_FIRST, &msb_lsb_mode);
-		if (ret == -1){
-			perror("can't set bits per word");
+	 if (ret == -1){
+		perror("can't set LSB/MSB_WR");
 			abort();
 		}
 
 	ret = ioctl(fd, SPI_IOC_RD_LSB_FIRST, &msb_lsb_mode);
 		if (ret == -1){
-			perror("can't get bits per word");
+			perror("can't get LSB/MSB_RD");
 			abort();
 		}
 

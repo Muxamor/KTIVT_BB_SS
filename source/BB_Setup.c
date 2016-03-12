@@ -98,7 +98,7 @@ int Default_Setup_GPIO_BB (void){
 	gpio_set_value(fd_GPIO_pin_output[GPIO_SPI_CS_Ch3] , HIGHT);
 	gpio_set_value(fd_GPIO_pin_output[GPIO_SPI_CS_Disp] , HIGHT);
 	gpio_set_value(fd_GPIO_pin_output[GPIO_SPI_CS_Col], HIGHT);
-	gpio_set_value(fd_GPIO_pin_output[GPIO_Sync_Ch1_Ch2_Ch3], HIGHT);// Проверить возможно  нужно по умолчанию ставить в ноль!!!!
+	gpio_set_value(fd_GPIO_pin_output[GPIO_Sync_Ch1_Ch2_Ch3], LOW);// Прерывание сделать по спадающему фронту!!!!
 	gpio_set_value(fd_GPIO_pin_output[GPIO_SPI_Reset_Ch1],  HIGHT); //Disable analog channel 1
 	gpio_set_value(fd_GPIO_pin_output[GPIO_SPI_Reset_Ch2],  HIGHT); //Disable analog channel 1
 	gpio_set_value(fd_GPIO_pin_output[GPIO_SPI_Reset_Ch3],  HIGHT); //Disable analog channel 1
@@ -115,7 +115,7 @@ int Default_Setup_GPIO_BB (void){
 int enable_analog_channel (gpio_name_output_pin  gpio_name){
 
 		gpio_set_value(fd_GPIO_pin_output[gpio_name] , LOW);
-
+		sleep(1);
 	return 0;
 }
 
@@ -135,7 +135,7 @@ int disable_analog_channel (gpio_name_output_pin  gpio_name){
 int reset_analog_channel (gpio_name_output_pin  gpio_name){
 
 	gpio_set_value(fd_GPIO_pin_output[gpio_name] , HIGHT);
-	usleep(500);
+	sleep(1);
 	gpio_set_value(fd_GPIO_pin_output[gpio_name] , LOW);
 
 	return 0;

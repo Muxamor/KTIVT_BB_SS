@@ -66,7 +66,17 @@ int Defult_setup_M41T64(uint8_t i2c_port, int addr_slave ){
 
 	//Set value of frequency for SQW output at M41T64
 	buf[0] = 0x04; // Address register in M41T64
-	buf[1] = 0b00000001;
+	buf[1] = 0b00010001; // 4096 need x8 for ADC  4096x8=32768
+
+	if( write(fd_i2c,buf,2) != 2) {
+		printf("Failed to write to the i2c bus register 0x0A.\n");
+		// сделать запись в лог
+		return -1;
+	}
+
+	//Enable SQW output
+	buf[0] = 0x0A; // Address register in M41T64
+	buf[1] = 0b01100001;
 
 	if( write(fd_i2c,buf,2) != 2) {
 		printf("Failed to write to the i2c bus register 0x0A.\n");
@@ -134,12 +144,12 @@ int M41T64_set_SQW_clock (uint8_t i2c_port, uint16_t clock_SQW, int addr_slave )
 			case 1024:// 1024 need x8 for ADC  1024x8=8192
 				buf[1] = 0b00100001; //8192Hz
 				break;
-			case 4096:
+			case 4096:// 4096 need x8 for ADC  4096x8=32768
 				buf[1] = 0b00010001;
  				break;
 			default:
-				buf[1] = 0b01100001; //512Hz
-				printf("Not correct value of Fd. Set 64Hz\n");
+				buf[1] = 0b00010001; // 4096 need x8 for ADC  4096x8=32768
+				printf("Not correct value of Fd. Set 4096Hz\n");
 				break;
 		}
 

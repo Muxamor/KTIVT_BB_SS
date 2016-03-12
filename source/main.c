@@ -62,17 +62,20 @@ static void pabort(const char *s){
 	int ret=0;
     uint32_t i;
 
+
 	ret = Default_Setup_GPIO_BB();
 	if (ret==-1){
 		perror("Default_Setup_GPIO_BB() - FAILUR");
 		return EXIT_FAILURE;
 	}
 
-	ret = Defult_setup_M41T64(I2C_BUS_NUMBER, ADDR_I2C_SLAVE_M41T64);
+	ret = Defult_setup_M41T64(I2C_BUS_NUMBER, ADDR_I2C_SLAVE_M41T64); //Set 4096 Hz
 	if (ret==-1){
 		perror("Defult_setup_M41T64() - FAILUR");
 		return EXIT_FAILURE;
 	}
+	sleep(1);//To wait ADC ready
+
 
 	fd_SPI_BB = spi_device_open("/dev/spidev1.0");
 	set_spi_settings(fd_SPI_BB, SPI_MODE_1, 0, 16, 18000000);
@@ -92,8 +95,10 @@ static void pabort(const char *s){
 
     // read config
     parse_config(fd_config_file, cfg_ch_old, 3);
+    //дать синхро импульс
     fclose(fd_config_file);
 
+    /*
     fd_config_file = fopen("/kti_bb_ss/KTIVT_BB_SSnew.conf", "r");
     if(fd_config_file==NULL){
     	//сделать запись в лог фаил
@@ -104,7 +109,7 @@ static void pabort(const char *s){
     // read config
     parse_config(fd_config_file, cfg_ch_new, 3);
     fclose(fd_config_file);
-
+*/
     //sent settings to analog channel
     ret = parse_sent_settings (fd_SPI_BB, cfg_ch_old, cfg_ch_new, sizeof(cfg_ch_old[0]) ,0, 3);
 	if (ret==-1){
@@ -112,11 +117,14 @@ static void pabort(const char *s){
 		return EXIT_FAILURE;
 	}
 
+/*
 	ret = parse_sent_settings (fd_SPI_BB, cfg_ch_old, cfg_ch_new, sizeof(cfg_ch_old[0]) ,1, 3);
 	if (ret==-1){
 		perror("parse_sent_settings() - FAILUR");
 		return EXIT_FAILURE;
 	}
+
+*/
 
 /*
     int testmemcmp;
@@ -141,37 +149,99 @@ static void pabort(const char *s){
     }
 */
 
-	//printf("> ");
-
-	//fgets(console_buffer, sizeof(console_buffer), stdin);
-
-	//printf("%s",console_buffer);
+	 //enable_analog_channel (GPIO_SPI_Reset_Ch1);
 
 
-/*
+	 gpio_set_value(fd_GPIO_pin_output[GPIO_Sync_Ch1_Ch2_Ch3] , HIGHT);
+	 gpio_set_value(fd_GPIO_pin_output[GPIO_Sync_Ch1_Ch2_Ch3] , LOW);
+	 printf("Enable Sync\n");
 
-    uint16_t tx_buf[2] = {0x0104,0x0000};
-    uint16_t rx_buf[2] = {};
-    	spi_transfer (fd_SPI_BB, GPIO_SPI_CS_Ch1 ,tx_buf, rx_buf, sizeof(tx_buf), 0);
+	 int j=0;
 
-    	while((gpio_get_value_interrupt(fd_GPIO_pin_input[GPIO_SPI_INT_Ch1],0)) != 1);
-
-    	uint16_t tx_buf1[2] = {0x0000,0x0000};
-    	uint16_t rx_buf1[2] = {};
-    	spi_transfer (fd_SPI_BB, GPIO_SPI_CS_Ch1 ,tx_buf1, rx_buf1, sizeof(tx_buf1), 0);
+	 uint16_t tx_buf[8206] = {0x0000};
+	 uint16_t rx_buf[8206] = {};
 
 
-    	for (i = 0; i < 2; i++){
-    		printf("0x%.4X ", rx_buf1[i]);
+while(j!=36000){
+
+
+
+
+	printf("Cicle = %d\n",j);
+	j++;
+	printf("Channel 1\n");
+    while((gpio_get_value_interrupt(fd_GPIO_pin_input[GPIO_SPI_INT_Ch1],0)) != 1);
+    printf("Wait interrup 1 get\n");
+
+    ret = spi_read_data_ADC24 (fd_SPI_BB, GPIO_SPI_CS_Ch1, GPIO_SPI_INT_Ch1, tx_buf, rx_buf, sizeof(tx_buf), 0);
+    if(ret != 0){
+    	perror("Error SPI\n");
+    }
+
+    	for (i = 0; i < 20; i++){
+    		printf("0x%.4X ", rx_buf[i]);
     	}
     	printf("\n");
 
-    	printf("sleep 1 second\n");
-    	sleep(1);
-    	int check;
+    	//sleep(1);
+
+    	for (i = 8186; i < 8206; i++){
+    		printf("0x%.4X ", rx_buf[i]);
+    	}
+    	printf("\n");
+
+
+    	printf("Channel 2\n");
+        while((gpio_get_value_interrupt(fd_GPIO_pin_input[GPIO_SPI_INT_Ch2],0)) != 1);
+        printf("Wait interrup 1 get\n");
+
+        ret = spi_read_data_ADC24 (fd_SPI_BB, GPIO_SPI_CS_Ch2, GPIO_SPI_INT_Ch2, tx_buf, rx_buf, sizeof(tx_buf), 0);
+        if(ret != 0){
+        	perror("Error SPI\n");
+        }
+
+        	for (i = 0; i < 20; i++){
+        		printf("0x%.4X ", rx_buf[i]);
+        	}
+        	printf("\n");
+
+        	//sleep(1);
+
+        	for (i = 8186; i < 8206; i++){
+        		printf("0x%.4X ", rx_buf[i]);
+        	}
+        	printf("\n");
+
+	printf("Channel 3\n");
+            while((gpio_get_value_interrupt(fd_GPIO_pin_input[GPIO_SPI_INT_Ch3],0)) != 1);
+            printf("Wait interrup 1 get\n");
+
+            ret = spi_read_data_ADC24 (fd_SPI_BB, GPIO_SPI_CS_Ch3, GPIO_SPI_INT_Ch3, tx_buf, rx_buf, sizeof(tx_buf), 0);
+            if(ret != 0){
+            	perror("Error SPI\n");
+            }
+
+            	for (i = 0; i < 20; i++){
+            		printf("0x%.4X ", rx_buf[i]);
+            	}
+            	printf("\n");
+
+            	//sleep(1);
+
+            	for (i = 8186; i < 8206; i++){
+            		printf("0x%.4X ", rx_buf[i]);
+            	}
+            	printf("\n");
+
+
+
+
+}
+
+
 
 	//gpio_input_pin_numbers[GPIO_SPI_INT_Ch1]
-	check= gpio_get_value_interrupt(fd_GPIO_pin_input[GPIO_SPI_INT_Ch1],0);
+/*	check= gpio_get_value_interrupt(fd_GPIO_pin_input[GPIO_SPI_INT_Ch1],0);
 
 	if(check==-1){
 				printf("interrupt no happen\n");
@@ -202,12 +272,16 @@ static void pabort(const char *s){
 
 	//close(fd_SPI_BB);
 	//gpio_fd_close(fd_GPIO_pin_output[GPIO_SPI_CS_Ch1]);
-
 */
 	 return EXIT_SUCCESS;
 
 }
 
 
+	//printf("> ");
+
+	//fgets(console_buffer, sizeof(console_buffer), stdin);
+
+	//printf("%s",console_buffer);
 
 
