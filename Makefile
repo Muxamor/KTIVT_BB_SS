@@ -27,7 +27,8 @@ DEPS = \
  include/SPI_SS.h\
  include/Config_pars.h\
  include/analog_ch_setup.h\
- include/M41T64_Clock.h
+ include/M41T64_Clock.h\
+ include/Eth_fn.h
 
 # Compiler object files 
 COBJ = \
@@ -37,7 +38,8 @@ COBJ = \
  $(OBJDIR)/SPI_SS.o\
  $(OBJDIR)/Config_pars.o\
  $(OBJDIR)/analog_ch_setup.o\
- $(OBJDIR)/M41T64_Clock.o
+ $(OBJDIR)/M41T64_Clock.o\
+ $(OBJDIR)/Eth_fn.o
 
 # gcc binaries to use. Write correct path on your OS system 
 ifeq ($(OS_SYSTEM),LINUX)

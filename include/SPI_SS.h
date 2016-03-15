@@ -17,7 +17,7 @@
 
 #define SIZE_HEAD_PACKAGE_ADC 28 // head size of adc package in the byte
 
-int fd_SPI_BB;
+
 struct spi_ioc_transfer SPI_trunsfer_struct;
 
 

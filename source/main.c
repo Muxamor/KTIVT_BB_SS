@@ -27,7 +27,7 @@
 #include "../include/Config_pars.h"
 #include "../include/analog_ch_setup.h"
 #include "../include/M41T64_Clock.h"
-
+#include "../include/Eth_fn.h"
 
 /*Спшуля писала
 int ConfigCompare ( config_t *Config1, config_t *Config2 )
@@ -60,7 +60,7 @@ static void pabort(const char *s){
 	char console_buffer[30];
 
 	int ret=0;
-    uint32_t i;
+    uint32_t i, j;
 
 
 	ret = Default_Setup_GPIO_BB();
@@ -76,7 +76,7 @@ static void pabort(const char *s){
 	}
 	sleep(1);//To wait ADC ready
 
-
+	int fd_SPI_BB;
 	fd_SPI_BB = spi_device_open("/dev/spidev1.0");
 	set_spi_settings(fd_SPI_BB, SPI_MODE_1, 0, 16, 18000000);
 
@@ -142,15 +142,45 @@ static void pabort(const char *s){
 
 
     //добавить обработку полученных настроек обработку полученных настроек
+
+
+
+	uint8_t test_buf_rx[] = {0x00,0x01, 0x01,0x03, 0x00,0x00,
+							   0x00,0x01, 0x02,0x00, 0x00,0x00,
+							   //0x00,0x00, 0x21,0x01, 0x00,0x00,
+							   0x00,0x02, 0x01,0x03, 0x00,0x00,
+							   0x00,0x02, 0x02,0x00, 0x00,0x00,
+							 //  0x00,0x00, 0x21,0x01, 0x00,0x00,
+							   0x00,0x03, 0x01,0x03, 0x00,0x00,
+							   0x00,0x03, 0x02,0x00, 0x00,0x00,
+							   0x00,0x00, 0x21,0x01, 0x00,0x00};
+
+	uint8_t test_buf_tx[sizeof(test_buf_rx)] = {};
+	printf("\n");
+
+	pars_eth_command_parsel(fd_SPI_BB, test_buf_rx, test_buf_tx,  sizeof (test_buf_rx), cfg_ch_old);
+
+	int k, size_buf_eth;
+	size_buf_eth = (( sizeof(test_buf_rx)/6) + 1 );
+
+	for(j = 1, i= 0, k=0; j < size_buf_eth ; j++ ){
+
+		printf(" Eth Command -- Answer: ");
+
+		for ( ; i < j*6 ; i++){
+			printf("0x%.2X ", test_buf_rx[i]);
+				}
+
+		printf("-- ");
+
+		for ( ; k < j*6 ; k++){
+			printf("0x%.2X ", test_buf_tx[k]);
+		}
+
+		printf("\n");
+	}
+
 /*
-    // write input parameter
-    for(i = 0; i < 3; i++){
-        printf("write(ch=%d, opt=KU1, val=%d)\n", i+1, cfg_old[i].ku1);
-    }
-*/
-
-	 //enable_analog_channel (GPIO_SPI_Reset_Ch1);
-
 
 	 gpio_set_value(fd_GPIO_pin_output[GPIO_Sync_Ch1_Ch2_Ch3] , HIGHT);
 	 gpio_set_value(fd_GPIO_pin_output[GPIO_Sync_Ch1_Ch2_Ch3] , LOW);
@@ -163,9 +193,6 @@ static void pabort(const char *s){
 
 
 while(j!=36000){
-
-
-
 
 	printf("Cicle = %d\n",j);
 	j++;
@@ -236,8 +263,22 @@ while(j!=36000){
 
 
 
+}*/
+
+
+	 return EXIT_SUCCESS;
+
 }
 
+
+
+
+
+	//printf("> ");
+
+	//fgets(console_buffer, sizeof(console_buffer), stdin);
+
+	//printf("%s",console_buffer);
 
 
 	//gpio_input_pin_numbers[GPIO_SPI_INT_Ch1]
@@ -273,15 +314,10 @@ while(j!=36000){
 	//close(fd_SPI_BB);
 	//gpio_fd_close(fd_GPIO_pin_output[GPIO_SPI_CS_Ch1]);
 */
-	 return EXIT_SUCCESS;
-
-}
 
 
-	//printf("> ");
 
-	//fgets(console_buffer, sizeof(console_buffer), stdin);
 
-	//printf("%s",console_buffer);
+
 
 

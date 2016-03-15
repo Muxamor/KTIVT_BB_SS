@@ -57,6 +57,7 @@ int spi_transfer (int fd, uint16_t SPI_channel, uint16_t tx_buffer[], uint16_t r
 int spi_transfer_command_analog_ch ( int fd, uint16_t SPI_channel, uint16_t SPI_channel_int, uint16_t tx_buffer[], uint16_t rx_buffer[], uint16_t size, uint16_t delay_SPI ) {
 
 	int ret=0;
+	uint16_t tmp_tx_buffer[2];
 
 	ret = spi_transfer (fd, SPI_channel, tx_buffer, rx_buffer, size, delay_SPI);
 
@@ -67,10 +68,10 @@ int spi_transfer_command_analog_ch ( int fd, uint16_t SPI_channel, uint16_t SPI_
     /// сделать тайм аут на ожидание ответа посылать 3 раза если ответ нету и истек тайм аут
     while((gpio_get_value_interrupt(fd_GPIO_pin_input[SPI_channel_int],0)) != 1);
 
-    tx_buffer[0] = 0x0000;
-    tx_buffer[1] = 0x0000;
+    tmp_tx_buffer[0] = 0x0000;
+    tmp_tx_buffer[1] = 0x0000;
 
-    ret = spi_transfer (fd, SPI_channel ,tx_buffer, rx_buffer, size, 0);
+    ret = spi_transfer (fd, SPI_channel ,tmp_tx_buffer, rx_buffer, size, 0);
 
     if( ret == -1 ){
     	return -1;
