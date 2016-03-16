@@ -29,6 +29,21 @@
 #include "../include/M41T64_Clock.h"
 #include "../include/Eth_fn.h"
 
+
+/*Для примера от Темыча */
+
+
+
+#include <string.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netdb.h>
+
+char message[] = "Hello therE!\n";
+char buf[sizeof(message)] = { 0 };
+
+
 /*Спшуля писала
 int ConfigCompare ( config_t *Config1, config_t *Config2 )
 {
@@ -55,7 +70,7 @@ static void pabort(const char *s){
 /****************************************************************
  *Main function
  ****************************************************************/
- int main(void){
+ int main(int argc, char **argv){
 
 	char console_buffer[30];
 
@@ -143,8 +158,62 @@ static void pabort(const char *s){
 
     //добавить обработку полученных настроек обработку полученных настроек
 
+///Пример от Темыча
+
+	  int sock, n;
+	    struct sockaddr_in addr;
+	    struct addrinfo *res, *t;
+	    struct addrinfo hints = { 0 };
+	    char *service, *servername;
+
+	    if( argc < 3 ){
+	        printf("Need server name and port\n");
+	        exit(1);
+	    }
+
+	    servername = strdup(argv[1]);
+	    service = strdup(argv[2]);
+
+	    hints.ai_family   = AF_UNSPEC;
+	    hints.ai_socktype = SOCK_STREAM;
+	    n = getaddrinfo(servername, service, &hints, &res);
+
+	    if (n < 0) {
+	        fprintf(stderr, "%s for %s:%s\n", gai_strerror(n), servername, service);
+	        free(service);
+	        printf("ERROR(%s:%d): getaddrinfo failed!\n",__FILE__,__LINE__);
+	        exit(1);
+	    }
+
+	    for (t = res; t; t = t->ai_next) {
+	        sock = socket(t->ai_family, t->ai_socktype, t->ai_protocol);
+	        if (sock >= 0) {
+	            if (!connect(sock, t->ai_addr, t->ai_addrlen))
+	                break;
+	            close(sock);
+	            sock = -1;
+	        }
+	    }
+
+	    freeaddrinfo(res);
+	    free(servername);
+	    free(service);
+
+	    send(sock, message, sizeof(message), 0);
+	    recv(sock, buf, sizeof(message), 0);
+
+	    printf("Success: %s", buf);
+	    close(sock);
 
 
+
+
+
+
+
+
+
+/*
 	uint8_t test_buf_rx[] = {0x00,0x01, 0x01,0x03, 0x00,0x00,
 							   0x00,0x01, 0x02,0x00, 0x00,0x00,
 							   //0x00,0x00, 0x21,0x01, 0x00,0x00,
@@ -179,6 +248,7 @@ static void pabort(const char *s){
 
 		printf("\n");
 	}
+	*/
 
 /*
 
