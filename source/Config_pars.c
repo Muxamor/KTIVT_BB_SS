@@ -14,7 +14,7 @@ static char *skip_spaces(char *str)
 
 void copy_token(char *dst, char *src, int maxlen)
 {
-    char reject[] = " \t"; //Сделано на всякий случай если после ch1 поставить пробел или табуляцию?
+    char reject[] = " \t";
     //size_t
 	unsigned int offs = strcspn(src, reject);
     memcpy(dst, src, offs);

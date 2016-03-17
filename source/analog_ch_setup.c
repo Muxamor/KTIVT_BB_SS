@@ -25,16 +25,20 @@
 	int ret;
 
 	if(settings_channel[number_channel].state == 0 ){ //State stop
-		tx_buf[0]=0x2104;
+		tx_buf[0]=0x2200;
 	}else if( settings_channel[number_channel].state == 1 ){ //State start
-		tx_buf[0]=0x2101;
+		tx_buf[0]=0x2000;
  	}
 
 	tx_buf[1]=0x0000;
 
 	ret = spi_transfer_command_analog_ch ( fd_SPI, gpio_spi_cs, gpio_spi_int, tx_buf,rx_buf, sizeof(tx_buf), 0 );
 
-	if ( ret == -1 || rx_buf[0] != 0x0001){
+	if( rx_buf[0] == 0x2001){
+		rx_buf[0] = 0x0001;
+	}
+
+	if ( ret == -1 || rx_buf[0] != 0x0001 ){
 		//сделать запись в лог файл
 		printf("Ch%d send command START/STOP : FOULT  SPI error \n", number_channel+1 );
 		return -1;

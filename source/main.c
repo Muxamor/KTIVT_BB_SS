@@ -39,9 +39,9 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
+#include <poll.h>
+#include <errno.h>
 
-char message[] = "Hello therE!\n";
-char buf[sizeof(message)] = { 0 };
 
 
 /*Спшуля писала
@@ -160,7 +160,11 @@ static void pabort(const char *s){
 
 ///Пример от Темыча
 
-	  int sock, n;
+
+
+	printf("Start connect \n");
+
+	    int sock, n;
 	    struct sockaddr_in addr;
 	    struct addrinfo *res, *t;
 	    struct addrinfo hints = { 0 };
@@ -181,6 +185,7 @@ static void pabort(const char *s){
 	    if (n < 0) {
 	        fprintf(stderr, "%s for %s:%s\n", gai_strerror(n), servername, service);
 	        free(service);
+	        free(servername);
 	        printf("ERROR(%s:%d): getaddrinfo failed!\n",__FILE__,__LINE__);
 	        exit(1);
 	    }
@@ -199,20 +204,87 @@ static void pabort(const char *s){
 	    free(servername);
 	    free(service);
 
-	    send(sock, message, sizeof(message), 0);
-	    recv(sock, buf, sizeof(message), 0);
+	    printf("Connect  sucsess!\n");
 
-	    printf("Success: %s", buf);
-	    close(sock);
+    uint8_t buf[4] = { 0 };
+    uint32_t tipe_eth_rx_parsel;
+    uint32_t *size_rx_tx_buf_eth;
+    uint32_t rx_tx_buf_eth_size = 1536;
+    size_rx_tx_buf_eth = &rx_tx_buf_eth_size;
+
+    uint8_t *rx_buf_eth_parcel = (uint8_t *)malloc(rx_tx_buf_eth_size);
+    if(rx_buf_eth_parcel == NULL){
+    	free (rx_buf_eth_parcel);
+    	printf("error malloc: %s \n","rx_buf_eth_parcel");
+    	exit(1);
+    }
+    uint8_t *tx_buf_eth_parcel = (uint8_t *)malloc(rx_tx_buf_eth_size);
+    if(tx_buf_eth_parcel == NULL){
+    	free (tx_buf_eth_parcel);
+    	printf("error malloc: %s \n","tx_buf_eth_parcel");
+    	exit(1);
+    }
+
+    uint8_t bufttew[10]= {0xAA};
+
+    send(sock, bufttew, sizeof(bufttew), 0);
+
+    struct pollfd pfd;
+    int timeout = 10; // in milliseconds
+    int rc;
+    pfd.fd = sock;
+    pfd.events = POLLIN | POLLHUP;
+
+while(1){
+
+	if( ( rc = poll(&pfd, 1, timeout) ) < 0 ){
+		if( rc == EINTR ){
+			rc = 0;
+		} else {
+			printf("Fatal error in poll: %s:%d\n", __FILE__, __LINE__);
+			exit(1);
+		}
+	}
+
+	if(rc == POLLHUP){
+
+			close(sock);
+			return EXIT_SUCCESS;
+	}
+
+	if( rc == POLLIN){
+
+		ret = recv(sock, buf, 4, 0);
+		if(ret==-1){
+
+			close(sock);
+			break;
+		}
+		printf(" ret =  %d\n", ret);
+		printf(" close %d\n", buf[0]);
+		printf(" close %d\n", buf[1]);
+		printf(" close %d\n", buf[2]);
+		printf(" close %d\n", buf[3]);
+
+		tipe_eth_rx_parsel = buf[0];
+		tipe_eth_rx_parsel = (tipe_eth_rx_parsel<<8)|(buf[1]);
+		tipe_eth_rx_parsel = (tipe_eth_rx_parsel<<8)|(buf[2]);
+		tipe_eth_rx_parsel = (tipe_eth_rx_parsel<<8)|(buf[3]);
+
+		if(tipe_eth_rx_parsel == 0x0001){// получен пакет с коммандами из интеренета
+			printf(" Got command parcel from Eth\n");
+			pars_eth_command_parcel(fd_SPI_BB, sock, rx_buf_eth_parcel, tx_buf_eth_parcel, size_rx_tx_buf_eth, cfg_ch_old);
+
+		}
+
+	}
 
 
 
 
 
 
-
-
-
+ }
 /*
 	uint8_t test_buf_rx[] = {0x00,0x01, 0x01,0x03, 0x00,0x00,
 							   0x00,0x01, 0x02,0x00, 0x00,0x00,
@@ -222,119 +294,106 @@ static void pabort(const char *s){
 							 //  0x00,0x00, 0x21,0x01, 0x00,0x00,
 							   0x00,0x03, 0x01,0x03, 0x00,0x00,
 							   0x00,0x03, 0x02,0x00, 0x00,0x00,
-							   0x00,0x00, 0x21,0x01, 0x00,0x00};
-
-	uint8_t test_buf_tx[sizeof(test_buf_rx)] = {};
-	printf("\n");
-
-	pars_eth_command_parsel(fd_SPI_BB, test_buf_rx, test_buf_tx,  sizeof (test_buf_rx), cfg_ch_old);
-
-	int k, size_buf_eth;
-	size_buf_eth = (( sizeof(test_buf_rx)/6) + 1 );
-
-	for(j = 1, i= 0, k=0; j < size_buf_eth ; j++ ){
-
-		printf(" Eth Command -- Answer: ");
-
-		for ( ; i < j*6 ; i++){
-			printf("0x%.2X ", test_buf_rx[i]);
-				}
-
-		printf("-- ");
-
-		for ( ; k < j*6 ; k++){
-			printf("0x%.2X ", test_buf_tx[k]);
-		}
-
-		printf("\n");
-	}
-	*/
-
+							   0x00,0x00, 0x21,0x01, 0x00,0x00};*/
 /*
-
 	 gpio_set_value(fd_GPIO_pin_output[GPIO_Sync_Ch1_Ch2_Ch3] , HIGHT);
 	 gpio_set_value(fd_GPIO_pin_output[GPIO_Sync_Ch1_Ch2_Ch3] , LOW);
 	 printf("Enable Sync\n");
 
-	 int j=0;
+	  j=0;
+sleep(5);
 
 	 uint16_t tx_buf[8206] = {0x0000};
 	 uint16_t rx_buf[8206] = {};
 
+	 uint16_t tx_buf_status[2] = {0x2800,0x0000};
+	 uint16_t rx_buf_status[2] = {0x0000,0x0000};
 
-while(j!=36000){
+while(j!=10){
 
-	printf("Cicle = %d\n",j);
-	j++;
-	printf("Channel 1\n");
-    while((gpio_get_value_interrupt(fd_GPIO_pin_input[GPIO_SPI_INT_Ch1],0)) != 1);
-    printf("Wait interrup 1 get\n");
+	//printf("Cicle = %d\n",j);
 
-    ret = spi_read_data_ADC24 (fd_SPI_BB, GPIO_SPI_CS_Ch1, GPIO_SPI_INT_Ch1, tx_buf, rx_buf, sizeof(tx_buf), 0);
-    if(ret != 0){
-    	perror("Error SPI\n");
-    }
+	ret = spi_transfer_command_analog_ch ( fd_SPI_BB, GPIO_SPI_CS_Ch1, GPIO_SPI_INT_Ch1, tx_buf_status,rx_buf_status, sizeof(tx_buf_status), 0 );
+	if(ret != 0){
+	    perror("Error SPI\n");
+	}
+	if(rx_buf_status[0] != 0x2800){
+		printf("0x%.4X \n", rx_buf_status[0]);
 
-    	for (i = 0; i < 20; i++){
-    		printf("0x%.4X ", rx_buf[i]);
-    	}
-    	printf("\n");
+		j++;
+		printf("Channel 1\n");
 
-    	//sleep(1);
+	    ret = spi_read_data_ADC24 (fd_SPI_BB, GPIO_SPI_CS_Ch1, GPIO_SPI_INT_Ch1, tx_buf, rx_buf, sizeof(tx_buf), 0);
+	    if(ret != 0){
+	    	perror("Error SPI\n");
+	    }
 
-    	for (i = 8186; i < 8206; i++){
-    		printf("0x%.4X ", rx_buf[i]);
-    	}
-    	printf("\n");
-
-
-    	printf("Channel 2\n");
-        while((gpio_get_value_interrupt(fd_GPIO_pin_input[GPIO_SPI_INT_Ch2],0)) != 1);
-        printf("Wait interrup 1 get\n");
-
-        ret = spi_read_data_ADC24 (fd_SPI_BB, GPIO_SPI_CS_Ch2, GPIO_SPI_INT_Ch2, tx_buf, rx_buf, sizeof(tx_buf), 0);
-        if(ret != 0){
-        	perror("Error SPI\n");
-        }
-
-        	for (i = 0; i < 20; i++){
-        		printf("0x%.4X ", rx_buf[i]);
-        	}
-        	printf("\n");
-
-        	//sleep(1);
-
-        	for (i = 8186; i < 8206; i++){
-        		printf("0x%.4X ", rx_buf[i]);
-        	}
-        	printf("\n");
-
-	printf("Channel 3\n");
-            while((gpio_get_value_interrupt(fd_GPIO_pin_input[GPIO_SPI_INT_Ch3],0)) != 1);
-            printf("Wait interrup 1 get\n");
-
-            ret = spi_read_data_ADC24 (fd_SPI_BB, GPIO_SPI_CS_Ch3, GPIO_SPI_INT_Ch3, tx_buf, rx_buf, sizeof(tx_buf), 0);
-            if(ret != 0){
-            	perror("Error SPI\n");
-            }
-
-            	for (i = 0; i < 20; i++){
-            		printf("0x%.4X ", rx_buf[i]);
-            	}
-            	printf("\n");
-
-            	//sleep(1);
-
-            	for (i = 8186; i < 8206; i++){
-            		printf("0x%.4X ", rx_buf[i]);
-            	}
-            	printf("\n");
+	    for (i = 0; i < 20; i++){
+	    	printf("0x%.4X ", rx_buf[i]);
+	    }
+	    printf("\n");
+	    for (i = 8186; i < 8206; i++){
+	    	printf("0x%.4X ", rx_buf[i]);
+	    }
+	    printf("\n");
+	}
 
 
 
+	ret = spi_transfer_command_analog_ch ( fd_SPI_BB, GPIO_SPI_CS_Ch2, GPIO_SPI_INT_Ch2, tx_buf_status,rx_buf_status, sizeof(tx_buf_status), 0 );
+		if(ret != 0){
+		    perror("Error SPI\n");
+		}
+		if(rx_buf_status[0] != 0x2800){
+			printf("0x%.4X \n", rx_buf_status[0]);
 
-}*/
 
+			printf("Channel 2\n");
+
+		    ret = spi_read_data_ADC24 (fd_SPI_BB, GPIO_SPI_CS_Ch2, GPIO_SPI_INT_Ch2, tx_buf, rx_buf, sizeof(tx_buf), 0);
+		    if(ret != 0){
+		    	perror("Error SPI\n");
+		    }
+
+		    for (i = 0; i < 20; i++){
+		    	printf("0x%.4X ", rx_buf[i]);
+		    }
+		    printf("\n");
+		    for (i = 8186; i < 8206; i++){
+		    	printf("0x%.4X ", rx_buf[i]);
+		    }
+		    printf("\n");
+	}
+
+
+	ret = spi_transfer_command_analog_ch ( fd_SPI_BB, GPIO_SPI_CS_Ch3, GPIO_SPI_INT_Ch3, tx_buf_status,rx_buf_status, sizeof(tx_buf_status), 0 );
+			if(ret != 0){
+			    perror("Error SPI\n");
+			}
+			if(rx_buf_status[0] != 0x2800){
+				printf("0x%.4X \n", rx_buf_status[0]);
+
+
+				printf("Channel 3\n");
+
+			    ret = spi_read_data_ADC24 (fd_SPI_BB, GPIO_SPI_CS_Ch3, GPIO_SPI_INT_Ch3, tx_buf, rx_buf, sizeof(tx_buf), 0);
+			    if(ret != 0){
+			    	perror("Error SPI\n");
+			    }
+
+			    for (i = 0; i < 20; i++){
+			    	printf("0x%.4X ", rx_buf[i]);
+			    }
+			    printf("\n");
+			    for (i = 8186; i < 8206; i++){
+			    	printf("0x%.4X ", rx_buf[i]);
+			    }
+			    printf("\n");
+	}
+
+
+}
+*/
 
 	 return EXIT_SUCCESS;
 

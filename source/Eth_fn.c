@@ -4,9 +4,12 @@
  *  Created on: 14 марта 2016 г.
  *      Author: Ivan
  */
+
 #include <stdio.h>
-#include <unistd.h>
+#include <string.h>
+#include <stdlib.h>
 #include <stdint.h>
+#include <unistd.h>
 #include "../include/GPIO_SS.h"
 #include "../include/SPI_SS.h"
 #include "../include/BB_Setup.h"
@@ -14,7 +17,21 @@
 #include "../include/Eth_fn.h"
 
 
-int pars_eth_command_parsel(int fd_SPI,  uint8_t *rx_buf_eth, uint8_t *tx_buf_eth, uint32_t size_rx, struct settings_ch *settings_channels){
+int sendall(int fd_s, char *buf, int len, int flags){
+    int total = 0;
+    int n;
+
+    while(total < len)
+    {
+        n = send(fd_s, buf+total, len-total, flags);
+        if(n == -1) { break; }
+        total += n;
+    }
+
+    return (n==-1 ? -1 : total);
+}
+
+int pars_eth_command_parcel(int fd_SPI, int fd_socket, uint8_t *rx_buf_eth,  uint8_t *tx_buf_eth, uint32_t *real_rx_tx_buf_eth_size, struct settings_ch *settings_channels){
 
 	uint16_t tx_mk_buf[2];
  	uint16_t rx_mk_buf[2];
@@ -25,7 +42,8 @@ int pars_eth_command_parsel(int fd_SPI,  uint8_t *rx_buf_eth, uint8_t *tx_buf_et
  	uint16_t tmp;
  	uint8_t tmp1;
 
- 	int i,j;
+ 	uint32_t i,j;
+ 	uint32_t current_size_rx_eth_parsl;
 
  	gpio_name_output_pin gpio_pin_res;
  	gpio_name_output_pin gpio_pin_spi_cs;
@@ -34,8 +52,60 @@ int pars_eth_command_parsel(int fd_SPI,  uint8_t *rx_buf_eth, uint8_t *tx_buf_et
  	gpio_name_output_pin gpio_pin_spi_cs_array[] = { 0x00, GPIO_SPI_CS_Ch1, GPIO_SPI_CS_Ch2, GPIO_SPI_CS_Ch3 };
  	gpio_name_output_pin gpio_pin_spi_int_array[] = { 0x00, GPIO_SPI_INT_Ch1, GPIO_SPI_INT_Ch2, GPIO_SPI_INT_Ch3 };
 
+ 	//Read size parcel from Eth
+ 	re = recv(fd_socket, rx_buf_eth, 4, 0);
 
- 	for(i=0, j=0; i < size_rx ; i++){
+
+
+ 	//дописать проверку что возварщает recv
+ 	current_size_rx_eth_parsl = rx_buf_eth[0];
+ 	current_size_rx_eth_parsl = (current_size_rx_eth_parsl<<8)|(rx_buf_eth[1]);
+ 	current_size_rx_eth_parsl = (current_size_rx_eth_parsl<<8)|(rx_buf_eth[2]);
+ 	current_size_rx_eth_parsl = (current_size_rx_eth_parsl<<8)|(rx_buf_eth[3]);
+
+ 	printf(" Size command parcel from Eth: %d\n",current_size_rx_eth_parsl );
+
+    //Realloc  rx_buf_eth  for eth parcel if size parcel more than current size rx_buf_eth
+ 	if(current_size_rx_eth_parsl > (*real_rx_tx_buf_eth_size)){
+
+ 		*real_rx_tx_buf_eth_size = current_size_rx_eth_parsl+16; //+16 for type and size for tx to eth parcel
+ 		rx_buf_eth = (uint8_t*)realloc(rx_buf_eth, *real_rx_tx_buf_eth_size);
+ 		if (rx_buf_eth==NULL) {
+ 			free (rx_buf_eth);
+ 			puts ("Error reallocating memory rx_buf_eth in eth fun ");
+ 			exit (1);
+ 		}
+ 		//дописать проверку на ошибки
+
+ 		tx_buf_eth = (uint8_t*)realloc(tx_buf_eth, *real_rx_tx_buf_eth_size);
+ 		if (tx_buf_eth==NULL) {
+ 			free (tx_buf_eth);
+ 			puts ("Error reallocating memory tx_buf_ethin eth fun ");
+ 			exit (1);
+ 		}
+ 		//дописать проверку на ошибки
+ 	}
+
+ 	recv(fd_socket, rx_buf_eth, current_size_rx_eth_parsl, 0);
+
+ 	//Write type answer parcel to Eth
+ 	j = 0;
+ 	tx_buf_eth[j] = 0x00;
+ 	j++;
+ 	tx_buf_eth[j] = 0x00;
+ 	j++;
+ 	tx_buf_eth[j] = 0x00;
+ 	j++;
+ 	tx_buf_eth[j] = 0x02; // Type mean that is parcel with answer
+ 	//Spase for size answer parsel to eth
+ 	j++;
+ 	j++;
+ 	j++;
+ 	j++;
+ 	// set j to write answe from analog channel
+ 	j++;
+
+ 	for(i=0 ; i < current_size_rx_eth_parsl ; i++){
 
  		tmp =  rx_buf_eth[i];
  		tmp = tmp << 8;
@@ -62,14 +132,17 @@ int pars_eth_command_parsel(int fd_SPI,  uint8_t *rx_buf_eth, uint8_t *tx_buf_et
  		gpio_pin_spi_int = gpio_pin_spi_int_array[number_channel];
 
 
- 		if((number_command == 0x21)|| (number_command == 0x22)){///этот кусок под вопросом переделать
+ 		if(number_command == 0x22){ //Stop command
+ 			// дописать проверку возврощаемых значений
+ 			number_channel = 0x0000;
  			spi_transfer_command_analog_ch ( fd_SPI, GPIO_SPI_CS_Ch1, GPIO_SPI_INT_Ch1, tx_mk_buf,rx_mk_buf, sizeof(tx_mk_buf), 0 );
  			spi_transfer_command_analog_ch ( fd_SPI, GPIO_SPI_CS_Ch2, GPIO_SPI_INT_Ch2, tx_mk_buf,rx_mk_buf, sizeof(tx_mk_buf), 0 );
  			spi_transfer_command_analog_ch ( fd_SPI, GPIO_SPI_CS_Ch3, GPIO_SPI_INT_Ch3, tx_mk_buf,rx_mk_buf, sizeof(tx_mk_buf), 0 );
 
+ 		}else if(number_command == 0x21){// Start Sync Enable
+ 			//дописать обработку флагов реально
  			number_channel = 0x0000;
-
- 			if (number_command == 0x21){
+ 			if( tx_mk_buf[0] == 0x2101 ){
  				gpio_set_value(fd_GPIO_pin_output[GPIO_Sync_Ch1_Ch2_Ch3] , HIGHT);
  				gpio_set_value(fd_GPIO_pin_output[GPIO_Sync_Ch1_Ch2_Ch3] , LOW);
  				printf(" Enable Sync\n");
@@ -107,6 +180,47 @@ int pars_eth_command_parsel(int fd_SPI,  uint8_t *rx_buf_eth, uint8_t *tx_buf_et
  		tx_buf_eth[j] = tmp1;
  		j++;
 
+ 	}
+
+ 	//Write size of answer parcel
+ 	if(current_size_rx_eth_parsl != (j-1)){
+
+ 		tx_buf_eth[4] = (uint8_t)(current_size_rx_eth_parsl>>24);
+ 		tx_buf_eth[5] = (uint8_t)(current_size_rx_eth_parsl>>16);
+ 		tx_buf_eth[6] = (uint8_t)(current_size_rx_eth_parsl>>8);
+ 		tx_buf_eth[7] = (uint8_t)current_size_rx_eth_parsl;
+
+ 		printf("Size answer parcel: %d+8\n", current_size_rx_eth_parsl );
+ 	}
+
+ 	//Sent parcel with answer to eth
+ 	ret = sendall(fd_socket, tx_buf_eth, current_size_rx_eth_parsl+8,0);
+
+ 	// Временно принтим потмо убрать
+ 	if(ret == current_size_rx_eth_parsl+8){
+ 		printf("Parcel answer send size: %d\n", current_size_rx_eth_parsl+8 );
+ 	}else{
+ 		printf("Error parcel answer send\n" );
+ 	}
+
+ 	unsigned int k, size_buf_eth;
+ 	size_buf_eth = (( current_size_rx_eth_parsl/6) + 1 );
+
+ 	for(j = 1, i= 0, k=0; j < size_buf_eth ; j++ ){
+
+ 		printf(" Eth Command -- Answer: ");
+
+ 		for ( ; i < j*6 ; i++){
+ 			printf("0x%.2X ", rx_buf_eth[i]);
+ 		}
+
+ 		printf("-- ");
+
+ 		for ( ; k < j*6 ; k++){
+ 			printf("0x%.2X ", tx_buf_eth[k+8]);
+ 		}
+
+ 		printf("\n");
  	}
 
  	return 0;
