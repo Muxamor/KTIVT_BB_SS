@@ -204,7 +204,7 @@ static void pabort(const char *s){
 	    free(servername);
 	    free(service);
 
-	    printf("Connect  sucsess!\n");
+	    printf("Connect  success!\n");
 
     uint8_t buf[4] = { 0 };
     uint32_t tipe_eth_rx_parsel;
@@ -225,15 +225,20 @@ static void pabort(const char *s){
     	exit(1);
     }
 
-    uint8_t bufttew[10]= {0xAA};
-
-    send(sock, bufttew, sizeof(bufttew), 0);
-
     struct pollfd pfd;
     int timeout = 10; // in milliseconds
     int rc;
     pfd.fd = sock;
     pfd.events = POLLIN | POLLHUP;
+    pfd.revents = 0;
+
+    // only for test
+    //sleep(10);
+
+       uint8_t bufttew[10]= {0xAA};
+
+       send(sock, bufttew, sizeof(bufttew), 0);
+       ///////////////////////////////////////////////////
 
 while(1){
 
@@ -246,35 +251,42 @@ while(1){
 		}
 	}
 
-	if(rc == POLLHUP){
+	if( pfd.revents & POLLHUP ){//& (rc>0)
 
-			close(sock);
-			return EXIT_SUCCESS;
+		printf(" Server close POLLHUP\n");
+		close(sock);
+		break;
 	}
 
-	if( rc == POLLIN){
+
+
+	if( pfd.revents & POLLIN ){// & (rc>0)
 
 		ret = recv(sock, buf, 4, 0);
-		if(ret==-1){
+		if(ret > 0){
 
+			tipe_eth_rx_parsel = buf[0];
+			tipe_eth_rx_parsel = (tipe_eth_rx_parsel<<8)|(buf[1]);
+			tipe_eth_rx_parsel = (tipe_eth_rx_parsel<<8)|(buf[2]);
+			tipe_eth_rx_parsel = (tipe_eth_rx_parsel<<8)|(buf[3]);
+
+			if(tipe_eth_rx_parsel == 0x0001){// получен пакет с коммандами из интеренета
+				printf(" Got command parcel from Eth\n");
+				ret = pars_eth_command_parcel(fd_SPI_BB, sock, rx_buf_eth_parcel, tx_buf_eth_parcel, size_rx_tx_buf_eth, cfg_ch_old);
+				if(ret == -1){
+					printf(" Error Eth command parser\n");
+					close(sock);
+					break;
+
+				}
+				printf(" Parser eth command FINISH work\n");
+
+			}
+
+		}else{
+			printf(" Server close Eth connection\n");
 			close(sock);
 			break;
-		}
-		printf(" ret =  %d\n", ret);
-		printf(" close %d\n", buf[0]);
-		printf(" close %d\n", buf[1]);
-		printf(" close %d\n", buf[2]);
-		printf(" close %d\n", buf[3]);
-
-		tipe_eth_rx_parsel = buf[0];
-		tipe_eth_rx_parsel = (tipe_eth_rx_parsel<<8)|(buf[1]);
-		tipe_eth_rx_parsel = (tipe_eth_rx_parsel<<8)|(buf[2]);
-		tipe_eth_rx_parsel = (tipe_eth_rx_parsel<<8)|(buf[3]);
-
-		if(tipe_eth_rx_parsel == 0x0001){// получен пакет с коммандами из интеренета
-			printf(" Got command parcel from Eth\n");
-			pars_eth_command_parcel(fd_SPI_BB, sock, rx_buf_eth_parcel, tx_buf_eth_parcel, size_rx_tx_buf_eth, cfg_ch_old);
-
 		}
 
 	}
@@ -294,12 +306,14 @@ while(1){
 							 //  0x00,0x00, 0x21,0x01, 0x00,0x00,
 							   0x00,0x03, 0x01,0x03, 0x00,0x00,
 							   0x00,0x03, 0x02,0x00, 0x00,0x00,
-							   0x00,0x00, 0x21,0x01, 0x00,0x00};*/
-/*
+							   0x00,0x00, 0x21,0x01, 0x00,0x00};
+
 	 gpio_set_value(fd_GPIO_pin_output[GPIO_Sync_Ch1_Ch2_Ch3] , HIGHT);
 	 gpio_set_value(fd_GPIO_pin_output[GPIO_Sync_Ch1_Ch2_Ch3] , LOW);
 	 printf("Enable Sync\n");
+*/
 
+/*
 	  j=0;
 sleep(5);
 
@@ -394,7 +408,8 @@ while(j!=10){
 
 }
 */
-
+     free(rx_buf_eth_parcel);
+     free(tx_buf_eth_parcel);
 	 return EXIT_SUCCESS;
 
 }
