@@ -42,6 +42,10 @@
 #include <poll.h>
 #include <errno.h>
 
+#define REVERSE_LE_BE_u16(A) \
+	((((uint16_t)(A) & 0xff00) >> 8) | \
+    (((uint16_t)(A) & 0x00ff) << 8))
+
 
 
 /*Спшуля писала
@@ -225,6 +229,14 @@ static void pabort(const char *s){
     	exit(1);
     }
 
+
+
+	 uint16_t tx_buf[8206] = {0x0000};
+	 uint16_t rx_buf[8206+4] = {};
+
+	 uint16_t tx_buf_status[2] = {0x2800,0x0000};
+	 uint16_t rx_buf_status[2] = {0x0000,0x0000};
+
     struct pollfd pfd;
     int timeout = 10; // in milliseconds
     int rc;
@@ -292,30 +304,201 @@ while(1){
 	}
 
 
+// Channel 1
+
+	ret = spi_transfer_command_analog_ch ( fd_SPI_BB, GPIO_SPI_CS_Ch1, GPIO_SPI_INT_Ch1, tx_buf_status,rx_buf_status, sizeof(tx_buf_status), 0 );
+	if(ret != 0){
+	    perror("Error SPI\n");
+	}
+	if(rx_buf_status[0] != 0x2800){
+		//printf("0x%.4X \n", rx_buf_status[0]);
+		//printf("0x%.4X \n", rx_buf_status[1]);
+
+		printf("Channel 1\n");
+
+	    ret = spi_read_data_ADC24 (fd_SPI_BB, GPIO_SPI_CS_Ch1, GPIO_SPI_INT_Ch1, tx_buf, &rx_buf[4], rx_buf_status[1], 0);
+	    if(ret != 0){
+	    	perror("Error SPI\n");
+	    }
+	    rx_buf[0] = 0x00;
+	    rx_buf[1] = 0x03;
+	    rx_buf[2] = 0x00;
+	    rx_buf[3] = rx_buf_status[1]+8;
+
+	    for (i = 0; i < 20; i++){
+	    	printf("0x%.4X ", rx_buf[i]);
+	    }
+	    printf("\n");
+	    for (i = (((rx_buf_status[1]+8)/2)-20); i < ((rx_buf_status[1]+8)/2); i++){
+	    	printf("0x%.4X ", rx_buf[i]);
+	    }
+	    printf("\n");
+
+	    printf("size parsel %d\n", rx_buf_status[1]+8);
+
+/*
+	    for(i=0; i < ((rx_buf_status[1]+8)/2); i++ ){
+
+	    	rx_buf[i] = REVERSE_LE_BE_u16(rx_buf[i]);
+	    }*/
+
+	    ret = send(sock, (uint8_t*)rx_buf, rx_buf_status[1]+8, 0);//(uint8_t*)
+	    if(ret ==  rx_buf_status[1]+8){
+	    	printf("All ADC data send to Eth\n");
+	    }else{
+	    	printf("Error: not all ADC data send to Eth\n");
+	    }
+	}
+
+	// Channel 1
+
+		ret = spi_transfer_command_analog_ch ( fd_SPI_BB, GPIO_SPI_CS_Ch1, GPIO_SPI_INT_Ch1, tx_buf_status,rx_buf_status, sizeof(tx_buf_status), 0 );
+		if(ret != 0){
+		    perror("Error SPI\n");
+		}
+		if(rx_buf_status[0] != 0x2800){
+			//printf("0x%.4X \n", rx_buf_status[0]);
+			//printf("0x%.4X \n", rx_buf_status[1]);
+
+			printf("Channel 1\n");
+
+		    ret = spi_read_data_ADC24 (fd_SPI_BB, GPIO_SPI_CS_Ch1, GPIO_SPI_INT_Ch1, tx_buf, &rx_buf[4], rx_buf_status[1], 0);
+		    if(ret != 0){
+		    	perror("Error SPI\n");
+		    }
+		    rx_buf[0] = 0x00;
+		    rx_buf[1] = 0x03;
+		    rx_buf[2] = 0x00;
+		    rx_buf[3] = rx_buf_status[1]+8;
+
+		    for (i = 0; i < 20; i++){
+		    	printf("0x%.4X ", rx_buf[i]);
+		    }
+		    printf("\n");
+		    for (i = (((rx_buf_status[1]+8)/2)-20); i < ((rx_buf_status[1]+8)/2); i++){
+		    	printf("0x%.4X ", rx_buf[i]);
+		    }
+		    printf("\n");
+
+		    printf("size parsel %d\n", rx_buf_status[1]+8);
+
+	/*
+		    for(i=0; i < ((rx_buf_status[1]+8)/2); i++ ){
+
+		    	rx_buf[i] = REVERSE_LE_BE_u16(rx_buf[i]);
+		    }*/
+
+		    ret = sendall(sock, (uint8_t*)rx_buf, rx_buf_status[1]+8, 0);//(uint8_t*)
+		    if(ret ==  rx_buf_status[1]+8){
+		    	printf("All ADC data send to Eth\n");
+		    }else{
+		    	printf("Error: not all ADC data send to Eth\n");
+		    }
+		}
+
+
+
+		// Channel 2
+
+		ret = spi_transfer_command_analog_ch ( fd_SPI_BB, GPIO_SPI_CS_Ch2, GPIO_SPI_INT_Ch2, tx_buf_status,rx_buf_status, sizeof(tx_buf_status), 0 );
+		if(ret != 0){
+			perror("Error SPI\n");
+		}
+		if(rx_buf_status[0] != 0x2800){
+			//printf("0x%.4X \n", rx_buf_status[0]);
+			//printf("0x%.4X \n", rx_buf_status[1]);
+
+			printf("Channel 2\n");
+
+			ret = spi_read_data_ADC24 (fd_SPI_BB, GPIO_SPI_CS_Ch2, GPIO_SPI_INT_Ch2, tx_buf, &rx_buf[4], rx_buf_status[1], 0);
+			if(ret != 0){
+				perror("Error SPI\n");
+			}
+			rx_buf[0] = 0x00;
+			rx_buf[1] = 0x03;
+			rx_buf[2] = 0x00;
+			rx_buf[3] = rx_buf_status[1]+8;
+
+			for (i = 0; i < 20; i++){
+				printf("0x%.4X ", rx_buf[i]);
+			}
+			printf("\n");
+			for (i = (((rx_buf_status[1]+8)/2)-20); i < ((rx_buf_status[1]+8)/2); i++){
+				printf("0x%.4X ", rx_buf[i]);
+			}
+			printf("\n");
+
+			printf("size parsel %d\n", rx_buf_status[1]+8);
+
+		/*
+			for(i=0; i < ((rx_buf_status[1]+8)/2); i++ ){
+
+			   rx_buf[i] = REVERSE_LE_BE_u16(rx_buf[i]);
+			}*/
+
+			ret = sendall(sock, (uint8_t*)rx_buf, rx_buf_status[1]+8, 0);//(uint8_t*)
+			if(ret ==  rx_buf_status[1]+8){
+				printf("All ADC data send to Eth\n");
+			}else{
+				printf("Error: not all ADC data send to Eth\n");
+			}
+		}
+
+		// Channel 3
+
+			ret = spi_transfer_command_analog_ch ( fd_SPI_BB, GPIO_SPI_CS_Ch3, GPIO_SPI_INT_Ch3, tx_buf_status,rx_buf_status, sizeof(tx_buf_status), 0 );
+			if(ret != 0){
+			    perror("Error SPI\n");
+			}
+			if(rx_buf_status[0] != 0x2800){
+				//printf("0x%.4X \n", rx_buf_status[0]);
+				//printf("0x%.4X \n", rx_buf_status[1]);
+
+				printf("Channel 3\n");
+
+			    ret = spi_read_data_ADC24 (fd_SPI_BB, GPIO_SPI_CS_Ch3, GPIO_SPI_INT_Ch3, tx_buf, &rx_buf[4], rx_buf_status[1], 0);
+			    if(ret != 0){
+			    	perror("Error SPI\n");
+			    }
+			    rx_buf[0] = 0x00;
+			    rx_buf[1] = 0x03;
+			    rx_buf[2] = 0x00;
+			    rx_buf[3] = rx_buf_status[1]+8;
+
+			    for (i = 0; i < 20; i++){
+			    	printf("0x%.4X ", rx_buf[i]);
+			    }
+			    printf("\n");
+			    for (i = (((rx_buf_status[1]+8)/2)-20); i < ((rx_buf_status[1]+8)/2); i++){
+			    	printf("0x%.4X ", rx_buf[i]);
+			    }
+			    printf("\n");
+
+			    printf("size parsel %d\n", rx_buf_status[1]+8);
+
+		/*
+			    for(i=0; i < ((rx_buf_status[1]+8)/2); i++ ){
+
+			    	rx_buf[i] = REVERSE_LE_BE_u16(rx_buf[i]);
+			    }*/
+
+			    ret = sendall(sock, (uint8_t*)rx_buf, rx_buf_status[1]+8, 0);//(uint8_t*)
+			    if(ret ==  rx_buf_status[1]+8){
+			    	printf("All ADC data send to Eth\n");
+			    }else{
+			    	printf("Error: not all ADC data send to Eth\n");
+			    }
+			}
+
+
+
+
 
 
 
 
  }
 /*
-	uint8_t test_buf_rx[] = {0x00,0x01, 0x01,0x03, 0x00,0x00,
-							   0x00,0x01, 0x02,0x00, 0x00,0x00,
-							   //0x00,0x00, 0x21,0x01, 0x00,0x00,
-							   0x00,0x02, 0x01,0x03, 0x00,0x00,
-							   0x00,0x02, 0x02,0x00, 0x00,0x00,
-							 //  0x00,0x00, 0x21,0x01, 0x00,0x00,
-							   0x00,0x03, 0x01,0x03, 0x00,0x00,
-							   0x00,0x03, 0x02,0x00, 0x00,0x00,
-							   0x00,0x00, 0x21,0x01, 0x00,0x00};
-
-	 gpio_set_value(fd_GPIO_pin_output[GPIO_Sync_Ch1_Ch2_Ch3] , HIGHT);
-	 gpio_set_value(fd_GPIO_pin_output[GPIO_Sync_Ch1_Ch2_Ch3] , LOW);
-	 printf("Enable Sync\n");
-*/
-
-/*
-	  j=0;
-sleep(5);
 
 	 uint16_t tx_buf[8206] = {0x0000};
 	 uint16_t rx_buf[8206] = {};
@@ -341,7 +524,7 @@ while(j!=10){
 	    if(ret != 0){
 	    	perror("Error SPI\n");
 	    }
-
+	     *//*
 	    for (i = 0; i < 20; i++){
 	    	printf("0x%.4X ", rx_buf[i]);
 	    }
@@ -351,8 +534,8 @@ while(j!=10){
 	    }
 	    printf("\n");
 	}
-
-
+*/
+/*
 
 	ret = spi_transfer_command_analog_ch ( fd_SPI_BB, GPIO_SPI_CS_Ch2, GPIO_SPI_INT_Ch2, tx_buf_status,rx_buf_status, sizeof(tx_buf_status), 0 );
 		if(ret != 0){
@@ -406,8 +589,8 @@ while(j!=10){
 	}
 
 
-}
-*/
+}*/
+
      free(rx_buf_eth_parcel);
      free(tx_buf_eth_parcel);
 	 return EXIT_SUCCESS;
