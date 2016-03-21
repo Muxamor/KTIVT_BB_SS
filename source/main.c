@@ -48,21 +48,15 @@
 
 
 
-/*Спшуля писала
-int ConfigCompare ( config_t *Config1, config_t *Config2 )
-{
-	return memcpy( Config1, Config2, sizeof(&Config1));
-}
-*/
 
 //#include <getopt.h>
 //#include <sys/ioctl.h>
 //#include <linux/types.h>
 //#include <string.h>
-//#include <errno.h>
+
 //#include <unistd.h>
 //#include <fcntl.h>
-//#include <poll.h>
+
 /*
 static void pabort(const char *s){
 	perror(s);
@@ -257,9 +251,12 @@ static void pabort(const char *s){
     // only for test
     //sleep(10);
 
-       uint8_t bufttew[10]= {0xAA};
 
-       send(sock, bufttew, sizeof(bufttew), 0);
+    //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// не звбыть убрать при тесте с Антоном
+    //   uint8_t bufttew[10]= {0xAA};
+
+   ///    send(sock, bufttew, sizeof(bufttew), 0);
        ///////////////////////////////////////////////////
 
 while(1){
@@ -284,13 +281,13 @@ while(1){
 
 	if( pfd.revents & POLLIN ){// & (rc>0)
 
-		ret = recv(sock, buf, 4, 0);
+		ret = recv(sock, &tipe_eth_rx_parsel, 4, 0);
 		if(ret > 0){
 
-			tipe_eth_rx_parsel = buf[0];
-			tipe_eth_rx_parsel = (tipe_eth_rx_parsel<<8)|(buf[1]);
-			tipe_eth_rx_parsel = (tipe_eth_rx_parsel<<8)|(buf[2]);
-			tipe_eth_rx_parsel = (tipe_eth_rx_parsel<<8)|(buf[3]);
+			//tipe_eth_rx_parsel = buf[0];
+			//tipe_eth_rx_parsel = (tipe_eth_rx_parsel<<8)|(buf[1]);
+			//tipe_eth_rx_parsel = (tipe_eth_rx_parsel<<8)|(buf[2]);
+			//tipe_eth_rx_parsel = (tipe_eth_rx_parsel<<8)|(buf[3]);
 
 			if(tipe_eth_rx_parsel == 0x0001){// получен пакет с коммандами из интеренета
 				printf(" Got command parcel from Eth\n");
@@ -321,10 +318,11 @@ while(1){
 	    perror("Error SPI\n");
 	}
 	if(rx_buf_status[0] != 0x2800){
-		//printf("0x%.4X \n", rx_buf_status[0]);
+
 		//printf("0x%.4X \n", rx_buf_status[1]);
 
 		printf("Channel 1\n");
+		printf("0x%.4X \n", rx_buf_status[0]);
 
 	    ret = spi_read_data_ADC24 (fd_SPI_BB, GPIO_SPI_CS_Ch1, GPIO_SPI_INT_Ch1, tx_buf, &rx_buf[4], rx_buf_status[1], 0);
 	    if(ret != 0){
@@ -333,7 +331,7 @@ while(1){
 	    rx_buf[0] = 0x00;
 	    rx_buf[1] = 0x03;
 	    rx_buf[2] = 0x00;
-	    rx_buf[3] = rx_buf_status[1]+8;
+	    rx_buf[3] = rx_buf_status[1];
 
 	    for (i = 0; i < 20; i++){
 	    	printf("0x%.4X ", rx_buf[i]);
@@ -346,11 +344,11 @@ while(1){
 
 	    printf("size parsel %d\n", rx_buf_status[1]+8);
 
-/*
+
 	    for(i=0; i < ((rx_buf_status[1]+8)/2); i++ ){
 
 	    	rx_buf[i] = REVERSE_LE_BE_u16(rx_buf[i]);
-	    }*/
+	    }
 
 	    ret = send(sock, (uint8_t*)rx_buf, rx_buf_status[1]+8, 0);//(uint8_t*)
 	    if(ret ==  rx_buf_status[1]+8){
@@ -360,54 +358,6 @@ while(1){
 	    }
 	}
 
-	// Channel 1
-
-		ret = spi_transfer_command_analog_ch ( fd_SPI_BB, GPIO_SPI_CS_Ch1, GPIO_SPI_INT_Ch1, tx_buf_status,rx_buf_status, sizeof(tx_buf_status), 0 );
-		if(ret != 0){
-		    perror("Error SPI\n");
-		}
-		if(rx_buf_status[0] != 0x2800){
-			//printf("0x%.4X \n", rx_buf_status[0]);
-			//printf("0x%.4X \n", rx_buf_status[1]);
-
-			printf("Channel 1\n");
-
-		    ret = spi_read_data_ADC24 (fd_SPI_BB, GPIO_SPI_CS_Ch1, GPIO_SPI_INT_Ch1, tx_buf, &rx_buf[4], rx_buf_status[1], 0);
-		    if(ret != 0){
-		    	perror("Error SPI\n");
-		    }
-		    rx_buf[0] = 0x00;
-		    rx_buf[1] = 0x03;
-		    rx_buf[2] = 0x00;
-		    rx_buf[3] = rx_buf_status[1]+8;
-
-		    for (i = 0; i < 20; i++){
-		    	printf("0x%.4X ", rx_buf[i]);
-		    }
-		    printf("\n");
-		    for (i = (((rx_buf_status[1]+8)/2)-20); i < ((rx_buf_status[1]+8)/2); i++){
-		    	printf("0x%.4X ", rx_buf[i]);
-		    }
-		    printf("\n");
-
-		    printf("size parsel %d\n", rx_buf_status[1]+8);
-
-	/*
-		    for(i=0; i < ((rx_buf_status[1]+8)/2); i++ ){
-
-		    	rx_buf[i] = REVERSE_LE_BE_u16(rx_buf[i]);
-		    }*/
-
-		    ret = sendall(sock, (uint8_t*)rx_buf, rx_buf_status[1]+8, 0);//(uint8_t*)
-		    if(ret ==  rx_buf_status[1]+8){
-		    	printf("All ADC data send to Eth\n");
-		    }else{
-		    	printf("Error: not all ADC data send to Eth\n");
-		    }
-		}
-
-
-
 		// Channel 2
 
 		ret = spi_transfer_command_analog_ch ( fd_SPI_BB, GPIO_SPI_CS_Ch2, GPIO_SPI_INT_Ch2, tx_buf_status,rx_buf_status, sizeof(tx_buf_status), 0 );
@@ -415,10 +365,11 @@ while(1){
 			perror("Error SPI\n");
 		}
 		if(rx_buf_status[0] != 0x2800){
-			//printf("0x%.4X \n", rx_buf_status[0]);
+
 			//printf("0x%.4X \n", rx_buf_status[1]);
 
 			printf("Channel 2\n");
+			printf("0x%.4X \n", rx_buf_status[0]);
 
 			ret = spi_read_data_ADC24 (fd_SPI_BB, GPIO_SPI_CS_Ch2, GPIO_SPI_INT_Ch2, tx_buf, &rx_buf[4], rx_buf_status[1], 0);
 			if(ret != 0){
@@ -427,7 +378,7 @@ while(1){
 			rx_buf[0] = 0x00;
 			rx_buf[1] = 0x03;
 			rx_buf[2] = 0x00;
-			rx_buf[3] = rx_buf_status[1]+8;
+			rx_buf[3] = rx_buf_status[1];
 
 			for (i = 0; i < 20; i++){
 				printf("0x%.4X ", rx_buf[i]);
@@ -440,11 +391,11 @@ while(1){
 
 			printf("size parsel %d\n", rx_buf_status[1]+8);
 
-		/*
+
 			for(i=0; i < ((rx_buf_status[1]+8)/2); i++ ){
 
 			   rx_buf[i] = REVERSE_LE_BE_u16(rx_buf[i]);
-			}*/
+			}
 
 			ret = sendall(sock, (uint8_t*)rx_buf, rx_buf_status[1]+8, 0);//(uint8_t*)
 			if(ret ==  rx_buf_status[1]+8){
@@ -465,6 +416,7 @@ while(1){
 				//printf("0x%.4X \n", rx_buf_status[1]);
 
 				printf("Channel 3\n");
+				printf("0x%.4X \n", rx_buf_status[0]);
 
 			    ret = spi_read_data_ADC24 (fd_SPI_BB, GPIO_SPI_CS_Ch3, GPIO_SPI_INT_Ch3, tx_buf, &rx_buf[4], rx_buf_status[1], 0);
 			    if(ret != 0){
@@ -473,7 +425,7 @@ while(1){
 			    rx_buf[0] = 0x00;
 			    rx_buf[1] = 0x03;
 			    rx_buf[2] = 0x00;
-			    rx_buf[3] = rx_buf_status[1]+8;
+			    rx_buf[3] = rx_buf_status[1];
 
 			    for (i = 0; i < 20; i++){
 			    	printf("0x%.4X ", rx_buf[i]);
@@ -486,11 +438,11 @@ while(1){
 
 			    printf("size parsel %d\n", rx_buf_status[1]+8);
 
-		/*
+
 			    for(i=0; i < ((rx_buf_status[1]+8)/2); i++ ){
 
 			    	rx_buf[i] = REVERSE_LE_BE_u16(rx_buf[i]);
-			    }*/
+			    }
 
 			    ret = sendall(sock, (uint8_t*)rx_buf, rx_buf_status[1]+8, 0);//(uint8_t*)
 			    if(ret ==  rx_buf_status[1]+8){
