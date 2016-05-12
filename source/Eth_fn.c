@@ -53,16 +53,15 @@ int pars_eth_command_parcel(int fd_SPI, int fd_socket, uint8_t *rx_buf_eth,  uin
  	gpio_name_output_pin gpio_pin_spi_int_array[] = { 0x00, GPIO_SPI_INT_Ch1, GPIO_SPI_INT_Ch2, GPIO_SPI_INT_Ch3 };
 
  	//Read size parcel from Eth
- 	ret = recv(fd_socket, &current_size_rx_eth_parsl, 4, 0);//rx_buf_eth
+ 	ret = recv(fd_socket, rx_buf_eth, 4, 0);//rx_buf_eth //&current_size_rx_eth_parsl
  	if(ret <= 0){
  		return -1;
  	}
 
- 	//дописать проверку что возварщает recv
- 	//current_size_rx_eth_parsl = rx_buf_eth[0];
- 	//current_size_rx_eth_parsl = (current_size_rx_eth_parsl<<8)|(rx_buf_eth[1]);
- 	//current_size_rx_eth_parsl = (current_size_rx_eth_parsl<<8)|(rx_buf_eth[2]);
- 	//current_size_rx_eth_parsl = (current_size_rx_eth_parsl<<8)|(rx_buf_eth[3]);
+ 	current_size_rx_eth_parsl = rx_buf_eth[0];
+ 	current_size_rx_eth_parsl = (current_size_rx_eth_parsl<<8)|(rx_buf_eth[1]);
+ 	current_size_rx_eth_parsl = (current_size_rx_eth_parsl<<8)|(rx_buf_eth[2]);
+ 	current_size_rx_eth_parsl = (current_size_rx_eth_parsl<<8)|(rx_buf_eth[3]);
 
  	printf(" Size command parcel from Eth: %d\n",current_size_rx_eth_parsl );
 
@@ -118,13 +117,13 @@ int pars_eth_command_parcel(int fd_SPI, int fd_socket, uint8_t *rx_buf_eth,  uin
  	j++;
  	tx_buf_eth[j] = 0x00;
  	j++;
- 	tx_buf_eth[j] = 0x02; // Type mean that is parcel with answer
- 	//Spase for size answer parsel to eth
+ 	tx_buf_eth[j] = 0x02; // Type mean that  parcel is answer
+ 	//Space for size answer parcel to Eth
  	j++;
  	j++;
  	j++;
  	j++;
- 	// set j to write answe from analog channel
+ 	// set j to write answer from analog channel
  	j++;
 
  	for(i=0 ; i < current_size_rx_eth_parsl ; i++){
@@ -258,7 +257,7 @@ int pars_eth_command_parcel(int fd_SPI, int fd_socket, uint8_t *rx_buf_eth,  uin
  	//Sent parcel with answer to eth
  	ret = sendall(fd_socket, tx_buf_eth, current_size_rx_eth_parsl+8,0);
 
- 	// Временно принтим потмо убрать
+ 	// Временно принтим потом убрать
  	if(ret == current_size_rx_eth_parsl+8){
  		printf(" Parcel answer send size: %d\n", current_size_rx_eth_parsl+8 );
  	}else{

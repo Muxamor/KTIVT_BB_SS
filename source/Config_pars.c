@@ -178,6 +178,7 @@ int parse_config(FILE *fp, struct settings_ch *cfg, int chan_num)
         		cfg[chan-1].mode = 0;
         	}
         	break;
+
         case 2:
         	if( strcmp(value, "start") == 0){
         		cfg[chan-1].state = 1;
@@ -204,18 +205,23 @@ int parse_config(FILE *fp, struct settings_ch *cfg, int chan_num)
                 return -1;
             }
             break;
+
         case 4:
         	cfg[chan-1].config_ch.ku1 = options[idx].int_val;
             break;
+
         case 5:
         	cfg[chan-1].config_ch.fcut = options[idx].int_val;
             break;
+
         case 6:
         	cfg[chan-1].config_ch.ku2 = options[idx].int_val;
             break;
+
         case 7:
         	cfg[chan-1].config_ch.fd = options[idx].int_val;
             break;
+
         case 8:
             cfg[chan-1].config_ch.fres = options[idx].int_val;
             break;

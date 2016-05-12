@@ -154,10 +154,7 @@ static void pabort(const char *s){
 */
 
 
-    //добавить обработку полученных настроек обработку полученных настроек
-
-///Пример от Темыча
-
+//добавить обработку полученных настроек
 
 
 	printf("Start Eth connect \n");
@@ -208,9 +205,6 @@ static void pabort(const char *s){
 	    	exit(1);
 	    }
 
-	    //freeaddrinfo(res);
-	 	//free(servername);
-	    //free(service);
 
 	    printf("Eth connect success!\n");
 
@@ -270,7 +264,7 @@ while(1){
 		}
 	}
 
-	if( pfd.revents & POLLHUP ){//& (rc>0)
+	if( pfd.revents & POLLHUP ){
 
 		printf(" Server close POLLHUP\n");
 		close(sock);
@@ -279,17 +273,17 @@ while(1){
 
 
 
-	if( pfd.revents & POLLIN ){// & (rc>0)
+	if( pfd.revents & POLLIN ){
 
-		ret = recv(sock, &tipe_eth_rx_parsel, 4, 0);
+		ret = recv(sock, buf, 4, 0); //&tipe_eth_rx_parsel
 		if(ret > 0){
 
-			//tipe_eth_rx_parsel = buf[0];
-			//tipe_eth_rx_parsel = (tipe_eth_rx_parsel<<8)|(buf[1]);
-			//tipe_eth_rx_parsel = (tipe_eth_rx_parsel<<8)|(buf[2]);
-			//tipe_eth_rx_parsel = (tipe_eth_rx_parsel<<8)|(buf[3]);
+			tipe_eth_rx_parsel = buf[0];
+			tipe_eth_rx_parsel = (tipe_eth_rx_parsel<<8)|(buf[1]);
+			tipe_eth_rx_parsel = (tipe_eth_rx_parsel<<8)|(buf[2]);
+			tipe_eth_rx_parsel = (tipe_eth_rx_parsel<<8)|(buf[3]);
 
-			if(tipe_eth_rx_parsel == 0x0001){// получен пакет с коммандами из интеренета
+			if(tipe_eth_rx_parsel == 0x0001){// get parsel from server
 				printf(" Got command parcel from Eth\n");
 				ret = pars_eth_command_parcel(fd_SPI_BB, sock, rx_buf_eth_parcel, tx_buf_eth_parcel, size_rx_tx_buf_eth, cfg_ch_old);
 				if(ret == -1){
@@ -396,6 +390,7 @@ while(1){
 
 			   rx_buf[i] = REVERSE_LE_BE_u16(rx_buf[i]);
 			}
+
 
 			ret = sendall(sock, (uint8_t*)rx_buf, rx_buf_status[1]+8, 0);//(uint8_t*)
 			if(ret ==  rx_buf_status[1]+8){
