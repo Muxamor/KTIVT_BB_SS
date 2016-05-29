@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <stdint.h>
+#include "../include/main.h"
 #include "../include/GPIO_SS.h"
 #include "../include/BB_Setup.h"
 

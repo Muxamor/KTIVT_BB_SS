@@ -19,8 +19,8 @@
 #include <unistd.h>
 #include <stdint.h>
 //#include </usr/local/Cellar/libconfig/1.5/include/libconfig.h>
+#include "../include/main.h"
 #include <linux/spi/spidev.h>
-//#include "../include/main.h"
 #include "../include/GPIO_SS.h"
 #include "../include/SPI_SS.h"
 #include "../include/BB_Setup.h"
@@ -32,8 +32,6 @@
 
 /*Для примера от Темыча */
 
-
-
 #include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -41,13 +39,6 @@
 #include <netdb.h>
 #include <poll.h>
 #include <errno.h>
-
-#define REVERSE_LE_BE_u16(A) \
-	((((uint16_t)(A) & 0xff00) >> 8) | \
-    (((uint16_t)(A) & 0x00ff) << 8))
-
-
-
 
 //#include <getopt.h>
 //#include <sys/ioctl.h>
@@ -82,13 +73,18 @@ static void pabort(const char *s){
 		return EXIT_FAILURE;
 	}
 
-	ret = Defult_setup_M41T64(I2C_BUS_NUMBER, ADDR_I2C_SLAVE_M41T64); //Set 4096 Hz
+	//Open i2c bus 2 on the beaglebone black
+	unsigned int fd_i2c;
+	fd_i2c = i2c_device_open("/dev/i2c-1");
+
+	ret = Defult_setup_M41T64(fd_i2c, ADDR_I2C_SLAVE_M41T64); //Set 4096 Hz
 	if (ret==-1){
 		perror("Defult_setup_M41T64() - FAILUR");
 		return EXIT_FAILURE;
 	}
 	sleep(1);//To wait ADC ready
 
+	//Open SPI bus on the beaglebone black
 	int fd_SPI_BB;
 	fd_SPI_BB = spi_device_open("/dev/spidev1.0");
 	set_spi_settings(fd_SPI_BB, SPI_MODE_1, 0, 16, 18000000);
@@ -124,11 +120,12 @@ static void pabort(const char *s){
     fclose(fd_config_file);
 */
     //sent settings to analog channel
+    //дописать команду синк!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ret = parse_sent_settings (fd_SPI_BB, cfg_ch_old, cfg_ch_new, sizeof(cfg_ch_old[0]) ,0, 3);
 	if (ret==-1){
 		perror("parse_sent_settings() - FAILUR");
 		return EXIT_FAILURE;
-	}
+	}//дописать команду синк
 
 /*
 	ret = parse_sent_settings (fd_SPI_BB, cfg_ch_old, cfg_ch_new, sizeof(cfg_ch_old[0]) ,1, 3);
@@ -157,7 +154,7 @@ static void pabort(const char *s){
 //добавить обработку полученных настроек
 
 
-	printf("Start Eth connect \n");
+	printf("Start Eth connect \n");// сделать запись в лог
 
 	    int sock, n;
 	    struct sockaddr_in addr;
@@ -166,7 +163,7 @@ static void pabort(const char *s){
 	    char *service, *servername;
 
 	    if( argc < 3 ){
-	        printf("Need server name and port\n");
+	        printf("Need server name and port\n");// сделать запись в лог
 	        exit(1);
 	    }
 
@@ -178,10 +175,10 @@ static void pabort(const char *s){
 	    n = getaddrinfo(servername, service, &hints, &res);
 
 	    if (n < 0) {
-	        fprintf(stderr, "%s for %s:%s\n", gai_strerror(n), servername, service);
+	        fprintf(stderr, "%s for %s:%s\n", gai_strerror(n), servername, service);// сделать запись в лог
 	        free(service);
 	        free(servername);
-	        printf("ERROR(%s:%d): getaddrinfo failed!\n",__FILE__,__LINE__);
+	        printf("ERROR(%s:%d): getaddrinfo failed!\n",__FILE__,__LINE__);// сделать запись в лог
 	        exit(1);
 	    }
 
@@ -201,12 +198,11 @@ static void pabort(const char *s){
 	    free(service);
 
 	    if( sock == -1 ){
-	    	printf("Eth connect ERROR!\n");
+	    	printf("Eth connect ERROR!\n");// сделать запись в лог
 	    	exit(1);
 	    }
 
-
-	    printf("Eth connect success!\n");
+	    printf("Eth connect success!\n"); // сделать запись в лог
 
     uint8_t buf[4] = { 0 };
     uint32_t tipe_eth_rx_parsel;
@@ -217,23 +213,16 @@ static void pabort(const char *s){
     uint8_t *rx_buf_eth_parcel = (uint8_t *)malloc(rx_tx_buf_eth_size);
     if(rx_buf_eth_parcel == NULL){
     	free (rx_buf_eth_parcel);
-    	printf("error malloc: %s \n","rx_buf_eth_parcel");
+    	printf("error malloc: %s \n","rx_buf_eth_parcel"); // сделать запись в лог
     	exit(1);
     }
     uint8_t *tx_buf_eth_parcel = (uint8_t *)malloc(rx_tx_buf_eth_size);
     if(tx_buf_eth_parcel == NULL){
     	free (tx_buf_eth_parcel);
-    	printf("error malloc: %s \n","tx_buf_eth_parcel");
+    	printf("error malloc: %s \n","tx_buf_eth_parcel"); // сделать запись в лог
     	exit(1);
     }
 
-
-
-	 uint16_t tx_buf[8206] = {0x0000};
-	 uint16_t rx_buf[8206+4] = {};
-
-	 uint16_t tx_buf_status[2] = {0x2800,0x0000};
-	 uint16_t rx_buf_status[2] = {0x0000,0x0000};
 
     struct pollfd pfd;
     int timeout = 10; // in milliseconds
@@ -241,9 +230,6 @@ static void pabort(const char *s){
     pfd.fd = sock;
     pfd.events = POLLIN | POLLHUP;
     pfd.revents = 0;
-
-    // only for test
-    //sleep(10);
 
 
     //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -272,7 +258,6 @@ while(1){
 	}
 
 
-
 	if( pfd.revents & POLLIN ){
 
 		ret = recv(sock, buf, 4, 0); //&tipe_eth_rx_parsel
@@ -284,169 +269,37 @@ while(1){
 			tipe_eth_rx_parsel = (tipe_eth_rx_parsel<<8)|(buf[3]);
 
 			if(tipe_eth_rx_parsel == 0x0001){// get parsel from server
+#ifdef DEBUG_MODE
 				printf(" Got command parcel from Eth\n");
-				ret = pars_eth_command_parcel(fd_SPI_BB, sock, rx_buf_eth_parcel, tx_buf_eth_parcel, size_rx_tx_buf_eth, cfg_ch_old);
+#endif
+				ret = pars_eth_command_parcel(fd_SPI_BB, fd_i2c, sock, rx_buf_eth_parcel, tx_buf_eth_parcel, size_rx_tx_buf_eth, cfg_ch_old);
 				if(ret == -1){
 					printf(" Error Eth command parser\n");
 					close(sock);
 					break;
 
 				}
+#ifdef DEBUG_MODE
 				printf(" Parser eth command FINISH work\n");
-
+#endif
 			}
 
 		}else{
+#ifdef DEBUG_MODE
 			printf(" Server close Eth connection\n");
+#endif
 			close(sock);
 			break;
 		}
 
 	}
 
-
-// Channel 1
-
-	ret = spi_transfer_command_analog_ch ( fd_SPI_BB, GPIO_SPI_CS_Ch1, GPIO_SPI_INT_Ch1, tx_buf_status,rx_buf_status, sizeof(tx_buf_status), 0 );
+	ret = send_ADC_data_to_Eth(fd_SPI_BB, 3, sock, cfg_ch_old );
 	if(ret != 0){
-	    perror("Error SPI\n");
-	}
-	if(rx_buf_status[0] != 0x2800){
-
-		//printf("0x%.4X \n", rx_buf_status[1]);
-
-		printf("Channel 1\n");
-		printf("0x%.4X \n", rx_buf_status[0]);
-
-	    ret = spi_read_data_ADC24 (fd_SPI_BB, GPIO_SPI_CS_Ch1, GPIO_SPI_INT_Ch1, tx_buf, &rx_buf[4], rx_buf_status[1], 0);
-	    if(ret != 0){
-	    	perror("Error SPI\n");
-	    }
-	    rx_buf[0] = 0x00;
-	    rx_buf[1] = 0x03;
-	    rx_buf[2] = 0x00;
-	    rx_buf[3] = rx_buf_status[1];
-
-	    for (i = 0; i < 20; i++){
-	    	printf("0x%.4X ", rx_buf[i]);
-	    }
-	    printf("\n");
-	    for (i = (((rx_buf_status[1]+8)/2)-20); i < ((rx_buf_status[1]+8)/2); i++){
-	    	printf("0x%.4X ", rx_buf[i]);
-	    }
-	    printf("\n");
-
-	    printf("size parsel %d\n", rx_buf_status[1]+8);
-
-
-	    for(i=0; i < ((rx_buf_status[1]+8)/2); i++ ){
-
-	    	rx_buf[i] = REVERSE_LE_BE_u16(rx_buf[i]);
-	    }
-
-	    ret = send(sock, (uint8_t*)rx_buf, rx_buf_status[1]+8, 0);//(uint8_t*)
-	    if(ret ==  rx_buf_status[1]+8){
-	    	printf("All ADC data send to Eth\n");
-	    }else{
-	    	printf("Error: not all ADC data send to Eth\n");
-	    }
+		    perror("Error Send data ADC to Eth\n");
 	}
 
-		// Channel 2
-
-		ret = spi_transfer_command_analog_ch ( fd_SPI_BB, GPIO_SPI_CS_Ch2, GPIO_SPI_INT_Ch2, tx_buf_status,rx_buf_status, sizeof(tx_buf_status), 0 );
-		if(ret != 0){
-			perror("Error SPI\n");
-		}
-		if(rx_buf_status[0] != 0x2800){
-
-			//printf("0x%.4X \n", rx_buf_status[1]);
-
-			printf("Channel 2\n");
-			printf("0x%.4X \n", rx_buf_status[0]);
-
-			ret = spi_read_data_ADC24 (fd_SPI_BB, GPIO_SPI_CS_Ch2, GPIO_SPI_INT_Ch2, tx_buf, &rx_buf[4], rx_buf_status[1], 0);
-			if(ret != 0){
-				perror("Error SPI\n");
-			}
-			rx_buf[0] = 0x00;
-			rx_buf[1] = 0x03;
-			rx_buf[2] = 0x00;
-			rx_buf[3] = rx_buf_status[1];
-
-			for (i = 0; i < 20; i++){
-				printf("0x%.4X ", rx_buf[i]);
-			}
-			printf("\n");
-			for (i = (((rx_buf_status[1]+8)/2)-20); i < ((rx_buf_status[1]+8)/2); i++){
-				printf("0x%.4X ", rx_buf[i]);
-			}
-			printf("\n");
-
-			printf("size parsel %d\n", rx_buf_status[1]+8);
-
-
-			for(i=0; i < ((rx_buf_status[1]+8)/2); i++ ){
-
-			   rx_buf[i] = REVERSE_LE_BE_u16(rx_buf[i]);
-			}
-
-
-			ret = sendall(sock, (uint8_t*)rx_buf, rx_buf_status[1]+8, 0);//(uint8_t*)
-			if(ret ==  rx_buf_status[1]+8){
-				printf("All ADC data send to Eth\n");
-			}else{
-				printf("Error: not all ADC data send to Eth\n");
-			}
-		}
-
-		// Channel 3
-
-			ret = spi_transfer_command_analog_ch ( fd_SPI_BB, GPIO_SPI_CS_Ch3, GPIO_SPI_INT_Ch3, tx_buf_status,rx_buf_status, sizeof(tx_buf_status), 0 );
-			if(ret != 0){
-			    perror("Error SPI\n");
-			}
-			if(rx_buf_status[0] != 0x2800){
-				//printf("0x%.4X \n", rx_buf_status[0]);
-				//printf("0x%.4X \n", rx_buf_status[1]);
-
-				printf("Channel 3\n");
-				printf("0x%.4X \n", rx_buf_status[0]);
-
-			    ret = spi_read_data_ADC24 (fd_SPI_BB, GPIO_SPI_CS_Ch3, GPIO_SPI_INT_Ch3, tx_buf, &rx_buf[4], rx_buf_status[1], 0);
-			    if(ret != 0){
-			    	perror("Error SPI\n");
-			    }
-			    rx_buf[0] = 0x00;
-			    rx_buf[1] = 0x03;
-			    rx_buf[2] = 0x00;
-			    rx_buf[3] = rx_buf_status[1];
-
-			    for (i = 0; i < 20; i++){
-			    	printf("0x%.4X ", rx_buf[i]);
-			    }
-			    printf("\n");
-			    for (i = (((rx_buf_status[1]+8)/2)-20); i < ((rx_buf_status[1]+8)/2); i++){
-			    	printf("0x%.4X ", rx_buf[i]);
-			    }
-			    printf("\n");
-
-			    printf("size parsel %d\n", rx_buf_status[1]+8);
-
-
-			    for(i=0; i < ((rx_buf_status[1]+8)/2); i++ ){
-
-			    	rx_buf[i] = REVERSE_LE_BE_u16(rx_buf[i]);
-			    }
-
-			    ret = sendall(sock, (uint8_t*)rx_buf, rx_buf_status[1]+8, 0);//(uint8_t*)
-			    if(ret ==  rx_buf_status[1]+8){
-			    	printf("All ADC data send to Eth\n");
-			    }else{
-			    	printf("Error: not all ADC data send to Eth\n");
-			    }
-			}
-	}
+}
 
      free(rx_buf_eth_parcel);
      free(tx_buf_eth_parcel);

@@ -26,5 +26,5 @@ int set_spi_settings(int fd, uint8_t mode, uint8_t msb_lsb_mode, uint8_t bits_in
 int spi_transfer (int fd, uint16_t SPI_channel, uint16_t tx_buffer[], uint16_t rx_buffer[], uint16_t size, uint16_t delay_SPI);
 int spi_transfer_command_analog_ch ( int fd, uint16_t SPI_channel, uint16_t SPI_channel_int, uint16_t tx_buffer[], uint16_t rx_buffer[], uint16_t size, uint16_t delay_SPI );
 int spi_read_data_ADC24 (int fd, uint16_t SPI_channel, uint16_t SPI_channel_int, uint16_t tx_buffer[], uint16_t rx_buffer[], uint16_t size, uint16_t delay_SPI);
-
+int sent_command_all_analog_ch (int fd_SPI, uint16_t *tx_buf );
 #endif /* INCLUDE_SPI_SS_H_ */

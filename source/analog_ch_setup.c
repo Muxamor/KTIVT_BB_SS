@@ -10,6 +10,7 @@
  */
 #include <stdio.h>
 #include <stdint.h>
+#include "../include/main.h"
 #include "../include/BB_Setup.h"
 #include "../include/SPI_SS.h"
 #include "../include/Config_pars.h"
@@ -334,6 +335,109 @@
  }
 
 
+ int  write_a_ch_unique_ID(int fd_SPI, uint16_t gpio_spi_cs, uint16_t gpio_spi_int, struct settings_ch *settings_channel, uint8_t number_channel){
+
+ 	uint16_t tx_buf[size_spi_tx_rx_buf_u16] = { 0 };
+ 	uint16_t rx_buf[size_spi_tx_rx_buf_u16] = { 0 };
+ 	int ret;
+
+ 	tx_buf[0] = 0x1300;
+ 	tx_buf[1] = settings_channel[number_channel].config_ch.ID_ch;
+
+ 	ret = spi_transfer_command_analog_ch ( fd_SPI, gpio_spi_cs, gpio_spi_int, tx_buf,rx_buf, sizeof(tx_buf), 0 );
+
+ 	if ( ret == -1 || rx_buf[0] != 0x0001){
+ 		//сделать запись в лог файл
+ 		printf("Ch%d setup unique ID: FOULT SPI error\n", number_channel+1 );
+ 		return -1;
+ 	}
+ 	//сделать запись  в лог файл
+ 	printf("Ch%d setup unique ID: OK\n", number_channel+1);
+
+ 	return 0;
+ }
+
+
+ int  write_a_ch_SID(int fd_SPI, uint16_t gpio_spi_cs, uint16_t gpio_spi_int, struct settings_ch *settings_channel, uint8_t number_channel){
+
+ 	uint16_t tx_buf[size_spi_tx_rx_buf_u16] = { 0 };
+ 	uint16_t rx_buf[size_spi_tx_rx_buf_u16] = { 0 };
+ 	int ret;
+
+ 	tx_buf[0] = 0x1500;
+ 	tx_buf[1] = 0x00FF & settings_channel[number_channel].config_ch.SID_ch;
+
+ 	ret = spi_transfer_command_analog_ch ( fd_SPI, gpio_spi_cs, gpio_spi_int, tx_buf,rx_buf, sizeof(tx_buf), 0 );
+
+ 	if ( ret == -1 || rx_buf[0] != 0x0001){
+ 		//сделать запись в лог файл
+ 		printf("Ch%d setup  SID number : FOULT SPI error\n", number_channel+1 );
+ 		return -1;
+ 	}
+ 	//сделать запись  в лог файл
+ 	printf("Ch%d setup SID number: OK\n", number_channel+1);
+
+ 	return 0;
+ }
+
+
+ int  write_a_ch_KEMS(int fd_SPI, uint16_t gpio_spi_cs, uint16_t gpio_spi_int, struct settings_ch *settings_channel, uint8_t number_channel){
+
+ 	uint16_t tx_buf[size_spi_tx_rx_buf_u16] = { 0 };
+ 	uint16_t rx_buf[size_spi_tx_rx_buf_u16] = { 0 };
+ 	int ret;
+
+ 	tx_buf[0] = 0x1B00;
+ 	tx_buf[1] = settings_channel[number_channel].config_ch.KEMS;
+
+ 	ret = spi_transfer_command_analog_ch ( fd_SPI, gpio_spi_cs, gpio_spi_int, tx_buf,rx_buf, sizeof(tx_buf), 0 );
+
+ 	if ( ret == -1 || rx_buf[0] != 0x0001){
+ 		//сделать запись в лог файл
+ 		printf("Ch%d setup KEMS: FOULT SPI error\n", number_channel+1 );
+ 		return -1;
+ 	}
+ 	//сделать запись  в лог файл
+ 	printf("Ch%d setup KEMS: OK\n", number_channel+1);
+
+ 	return 0;
+ }
+
+ int  write_a_ch_X_Y_Z(int fd_SPI, uint16_t gpio_spi_cs, uint16_t gpio_spi_int, struct settings_ch *settings_channel, uint8_t number_channel){
+
+ 	uint16_t tx_buf[size_spi_tx_rx_buf_u16] = { 0 };
+ 	uint16_t rx_buf[size_spi_tx_rx_buf_u16] = { 0 };
+ 	int ret;
+
+ 	//Coordinates of channels:
+ 	if( settings_channel[number_channel].config_ch.X_Y_Z == 0x00 ){
+ 		tx_buf[0]=0x2900;
+ 	}else if( settings_channel[number_channel].config_ch.X_Y_Z == 0x01 ){
+ 		tx_buf[0]=0x2901;
+	}else if( settings_channel[number_channel].config_ch.X_Y_Z == 0x02 ){
+		tx_buf[0]=0x2902;
+	}else if( settings_channel[number_channel].config_ch.X_Y_Z == 0x03 ){
+		tx_buf[0]=0x2903;
+ 	}else{
+ 	 		printf("Ch%d setup coordinates of channels:: FOULT argument invalid \n", number_channel+1 );
+ 	 		return -1;
+ 	}
+
+ 	ret = spi_transfer_command_analog_ch ( fd_SPI, gpio_spi_cs, gpio_spi_int, tx_buf,rx_buf, sizeof(tx_buf), 0 );
+
+ 	if ( ret == -1 || rx_buf[0] != 0x0001){
+ 		//сделать запись в лог файл
+ 		printf("Ch%d setup X_Y_Z: FOULT SPI error\n", number_channel+1 );
+ 		return -1;
+ 	}
+ 	//сделать запись  в лог файл
+ 	printf("Ch%d setup X_Y_Z: OK\n", number_channel+1);
+
+ 	return 0;
+ }
+
+
+
  int parse_sent_settings (int fd_SPI, struct settings_ch *settings_old, struct settings_ch *settings_new, uint16_t size_settings, uint8_t compare_settings, uint8_t quantity_channels){
 
           uint8_t apply_settings[ quantity_channels ];
@@ -415,6 +519,32 @@
         		  if(ret != 0){
         			  return -1;
         		  }
+
+        // Unique ID:
+        		  ret =  write_a_ch_unique_ID(fd_SPI, gpio_pin_spi_cs, gpio_pin_spi_int, settings_old, number_ch);
+        		  if(ret != 0){
+        			  return -1;
+        		  }
+
+        // SID:
+        		  ret =  write_a_ch_SID(fd_SPI, gpio_pin_spi_cs, gpio_pin_spi_int, settings_old, number_ch);
+        		  if(ret != 0){
+        			  return -1;
+        		  }
+        // KEMS:
+        		  ret =  write_a_ch_KEMS(fd_SPI, gpio_pin_spi_cs, gpio_pin_spi_int, settings_old, number_ch);
+        		  if(ret != 0){
+        			  return -1;
+        		  }
+
+        // Coordinate:
+        		  ret =   write_a_ch_X_Y_Z(fd_SPI, gpio_pin_spi_cs, gpio_pin_spi_int, settings_old, number_ch);
+        		  if(ret != 0){
+        			  return -1;
+        		  }
+
+
+
 
 
         		  //ДОПИСАТЬ ОСТАЛЬНЫЕ КОМАНДЫ
@@ -557,6 +687,50 @@
 					  }
 				  }
 
+				  // Unique ID
+				  if(settings_old[number_ch].config_ch.ID_ch != settings_new[number_ch].config_ch.ID_ch || settings_old[number_ch].mode == 0){
+
+					  settings_old[number_ch].config_ch.ID_ch = settings_new[number_ch].config_ch.ID_ch;
+
+					  ret =  write_a_ch_unique_ID(fd_SPI, gpio_pin_spi_cs, gpio_pin_spi_int, settings_old, number_ch);
+					  if(ret != 0){
+						  return -1;
+					  }
+				  }
+
+				  //SID
+				  if(settings_old[number_ch].config_ch.SID_ch != settings_new[number_ch].config_ch.SID_ch || settings_old[number_ch].mode == 0){
+
+					  settings_old[number_ch].config_ch.SID_ch = settings_new[number_ch].config_ch.SID_ch;
+
+					  ret =  write_a_ch_SID(fd_SPI, gpio_pin_spi_cs, gpio_pin_spi_int, settings_old, number_ch);
+					  if(ret != 0){
+						  return -1;
+					  }
+				  }
+
+				  // KEMS
+				  if(settings_old[number_ch].config_ch.KEMS != settings_new[number_ch].config_ch.KEMS || settings_old[number_ch].mode == 0){
+
+					  settings_old[number_ch].config_ch.KEMS = settings_new[number_ch].config_ch.KEMS;
+
+					  ret =  write_a_ch_KEMS(fd_SPI, gpio_pin_spi_cs, gpio_pin_spi_int, settings_old, number_ch);
+					  if(ret != 0){
+						  return -1;
+					  }
+				  }
+
+				  // Coordinate
+				  if(settings_old[number_ch].config_ch.X_Y_Z != settings_new[number_ch].config_ch.X_Y_Z || settings_old[number_ch].mode == 0){
+
+					  settings_old[number_ch].config_ch.X_Y_Z = settings_new[number_ch].config_ch.X_Y_Z;
+
+					  ret =  write_a_ch_X_Y_Z(fd_SPI, gpio_pin_spi_cs, gpio_pin_spi_int, settings_old, number_ch);
+					  if(ret != 0){
+						  return -1;
+					  }
+				  }
+
 
 				  //ДОПИСАТЬ ОСТАЛЬНЫЕ КОМАНДЫ
 
@@ -583,4 +757,105 @@
           return 0;
 
     }
+
+
+
+ int setup_time_date_a_ch (int fd_SPI,unsigned int fd_I2C){
+
+ 	int ret;
+ 	uint16_t tx_buf[2], rx_buf[2];
+
+
+ 	//Set seconds to analog channel
+ 	ret =  get_seconds_M41T64(fd_I2C, ADDR_I2C_SLAVE_M41T64);
+ 	if(ret == -1){
+ 		return -1;
+ 	}
+
+ 	tx_buf[0] = 0x37;
+ 	tx_buf[0] = (tx_buf[0]<<8)|((uint8_t)ret);
+ 	tx_buf[1] = 0x0000;
+
+ 	ret = sent_command_all_analog_ch (fd_SPI, tx_buf );
+ 	if(ret == -1){
+ 		return -1;
+ 	}
+
+ 	//Set minutes to analog channel
+ 	ret =  get_minutes_M41T64(fd_I2C, ADDR_I2C_SLAVE_M41T64);
+ 	if(ret == -1){
+ 		return -1;
+ 	}
+
+ 	tx_buf[0] = 0x39;
+ 	tx_buf[0] = (tx_buf[0]<<8)|((uint8_t)ret);
+ 	tx_buf[1] = 0x0000;
+
+ 	ret = sent_command_all_analog_ch (fd_SPI, tx_buf );
+ 	if(ret == -1){
+ 		return -1;
+ 	}
+
+ 	//Set hours to analog channel
+ 	ret =  get_hours_M41T64(fd_I2C, ADDR_I2C_SLAVE_M41T64);
+ 	if(ret == -1){
+ 		return -1;
+ 	}
+
+ 	tx_buf[0] = 0x3B;
+ 	tx_buf[0] = (tx_buf[0]<<8)|((uint8_t)ret);
+ 	tx_buf[1] = 0x0000;
+
+ 	ret = sent_command_all_analog_ch (fd_SPI, tx_buf );
+ 	if(ret == -1){
+ 		return -1;
+ 	}
+
+ 	//Set day to analog channel
+ 	ret =  get_day_M41T64(fd_I2C, ADDR_I2C_SLAVE_M41T64);
+ 	if(ret == -1){
+ 		return -1;
+ 	}
+
+ 	tx_buf[0] = 0x3D;
+ 	tx_buf[0] = (tx_buf[0]<<8)|((uint8_t)ret);
+ 	tx_buf[1] = 0x0000;
+
+ 	ret = sent_command_all_analog_ch (fd_SPI, tx_buf );
+ 	if(ret == -1){
+ 		return -1;
+ 	}
+
+ 	//Set century month to analog channel
+ 	ret =  get_century_month_M41T64(fd_I2C, ADDR_I2C_SLAVE_M41T64);
+ 	if(ret == -1){
+ 		return -1;
+ 	}
+
+ 	tx_buf[0] = 0x3F;
+ 	tx_buf[0] = (tx_buf[0]<<8)|((uint8_t)ret);
+ 	tx_buf[1] = 0x0000;
+
+ 	ret = sent_command_all_analog_ch (fd_SPI, tx_buf );
+ 	if(ret == -1){
+ 		return -1;
+ 	}
+
+ 	//Set year to analog channel
+ 	ret =  get_year_M41T64(fd_I2C, ADDR_I2C_SLAVE_M41T64);
+ 	if(ret == -1){
+ 		return -1;
+ 	}
+
+ 	tx_buf[0] = 0x41;
+ 	tx_buf[0] = (tx_buf[0]<<8)|((uint8_t)ret);
+ 	tx_buf[1] = 0x0000;
+
+ 	ret = sent_command_all_analog_ch (fd_SPI, tx_buf );
+ 	if(ret == -1){
+ 		return -1;
+ 	}
+
+ 	return 0;
+ }
 

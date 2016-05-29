@@ -11,6 +11,10 @@ struct config_t
     unsigned short ku2;
     unsigned short fd;
     unsigned short fres;
+    unsigned short ID_ch;
+    unsigned short SID_ch;
+    unsigned short KEMS;
+    unsigned short X_Y_Z;
 };
 
 struct settings_ch{

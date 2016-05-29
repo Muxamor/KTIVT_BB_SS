@@ -1,8 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-
+#include "../include/main.h"
 #include "../include/Config_pars.h"
 
 static char *skip_spaces(char *str)
@@ -117,7 +116,11 @@ static description_t options[] = {
     { 5, "Fcut",    1, 10, 0 },
     { 6, "KU2",     1, 10, 0 },
     { 7, "Fd",      1, 10, 0 },
-	{ 8, "Fres",    1, 10, 0 }
+	{ 8, "Fres",    1, 10, 0 },
+	{ 9, "ID_ch",   1, 16, 0 },
+	{ 10,"SID_ch",  1, 16, 0 },
+	{ 11,"KEMS",    1, 16, 0 },
+	{ 12,"X_Y_Z",   0, 0, 0 },
 };
 static int options_size = sizeof(options) / sizeof(options[0]);
 
@@ -225,6 +228,34 @@ int parse_config(FILE *fp, struct settings_ch *cfg, int chan_num)
         case 8:
             cfg[chan-1].config_ch.fres = options[idx].int_val;
             break;
+
+        case 9:
+        	cfg[chan-1].config_ch.ID_ch = options[idx].int_val;
+        	break;
+
+        case 10:
+        	cfg[chan-1].config_ch.SID_ch = options[idx].int_val;
+        	break;
+
+        case 11:
+            cfg[chan-1].config_ch.KEMS = options[idx].int_val;
+            break;
+
+        case 12:
+            if( strcmp(value, "X") == 0 ){
+            	cfg[chan-1].config_ch.X_Y_Z  = 0x01;
+            } else if( strcmp(value,"Y") == 0 ){
+            	cfg[chan-1].config_ch.X_Y_Z  = 0x02;
+            } else if( strcmp(value,"Z") == 0 ){
+            	cfg[chan-1].config_ch.X_Y_Z  = 0x03;
+            } else if( strcmp(value,"NONE") == 0 ){
+            	cfg[chan-1].config_ch.X_Y_Z  = 0x00;
+            } else {
+            	printf("ERROR (config): %d: bad option \"%s\" value \"%s\"\n",lineno, option, value);
+            	return -1;
+            }
+            break;
+
         }
     }
     return 0;

@@ -19,6 +19,7 @@
 #include <sys/ioctl.h>
 #include <linux/types.h>
 #include <linux/spi/spidev.h>
+#include "../include/main.h"
 #include "../include/SPI_SS.h"
 #include "../include/GPIO_SS.h"
 #include "../include/BB_Setup.h"
@@ -238,6 +239,30 @@ int set_spi_settings(int fd, uint8_t mode, uint8_t msb_lsb_mode, uint8_t bits_in
 	printf("--max speed: %d Hz (%d KHz)\n", speed_SPI, speed_SPI/1000);
 
 	return 0;
+}
+
+
+
+int sent_command_all_analog_ch (int fd_SPI, uint16_t *tx_buf ){
+
+	int ret;
+	uint16_t  rx_buf[2] = {0x0000};
+
+    ret = spi_transfer_command_analog_ch ( fd_SPI, GPIO_SPI_CS_Ch1, GPIO_SPI_INT_Ch1, tx_buf,rx_buf, 4, 0 );
+	if(ret == -1 || rx_buf[0]!=0x0001 ){
+		return -1;
+	}
+	ret = spi_transfer_command_analog_ch ( fd_SPI, GPIO_SPI_CS_Ch2, GPIO_SPI_INT_Ch2, tx_buf,rx_buf, 4, 0 );
+	if(ret == -1 || rx_buf[0]!=0x0001 ){
+		return -1;
+	}
+	ret = spi_transfer_command_analog_ch ( fd_SPI, GPIO_SPI_CS_Ch3, GPIO_SPI_INT_Ch3, tx_buf,rx_buf, 4, 0 );
+	if(ret == -1 || rx_buf[0]!=0x0001 ){
+		return -1;
+	}
+
+	return 0;
+
 }
 
 
