@@ -90,7 +90,6 @@ static void pabort(const char *s){
 	set_spi_settings(fd_SPI_BB, SPI_MODE_1, 0, 16, 18000000);
 
 	//Read file configuration and pars
-
     struct settings_ch cfg_ch_old[3] = {0};
     struct settings_ch cfg_ch_new[3] = {0};
 
@@ -98,7 +97,6 @@ static void pabort(const char *s){
     struct settings_brd cfg_brd_new;
     memset(&cfg_brd_old, 0, sizeof(cfg_brd_old));
     memset(&cfg_brd_new, 0, sizeof(cfg_brd_new));
-
 
 
     FILE *fd_config_file = fopen("/kti_bb_ss/KTIVT_BB_SS.conf", "r");
@@ -109,8 +107,14 @@ static void pabort(const char *s){
     }
 
     // read config
-    parse_config(fd_config_file, &cfg_brd_old, cfg_ch_old, 3); //дописать проверку возврата
+    //дописать команду синк
+    ret = parse_config(fd_config_file, &cfg_brd_old, cfg_ch_old, 3); //дописать проверку возврата
     fclose(fd_config_file);
+	if (ret==-1){
+		perror("Config file no correct"); // сдлеать запись в лог
+		return EXIT_FAILURE;
+	}
+
 
 /*
     fd_config_file = fopen("/kti_bb_ss/KTIVT_BB_SSnew.conf", "r");

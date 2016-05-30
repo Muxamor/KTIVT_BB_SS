@@ -233,10 +233,18 @@ static int channel_cfg(struct settings_ch *cfg, char *option, char *value, int l
 		break;
 
 	case 10:
+		if(options_chan[idx].int_val > 0xFF ){
+			printf("ERROR (config): %d: bad option \"%s\" value \"%s\"\n",lineno, option, value);
+			return -1;
+		}
 		cfg->config_ch.SID_ch = options_chan[idx].int_val;
 		break;
 
 	case 11:
+		if(options_chan[idx].int_val > 0x270F ){
+			printf("ERROR (config): %d: bad option \"%s\" value \"%s\"\n",lineno, option, value);
+			return -1;
+		}
 		cfg->config_ch.KEMS = options_chan[idx].int_val;
 		break;
 
@@ -274,8 +282,7 @@ static int board_cfg(struct settings_brd *cfg, char *option, char *value, int li
 	switch( options_brd[idx].id ){
 	case 1:
 		if( strlen(value) > sizeof(cfg->dname) ){
-			printf("ERROR (config): %d: bad length of option \"%s\" value\n",
-					lineno, option, value);
+			printf("ERROR (config): %d: bad length of option \"%s\" value\n", lineno, option, value);
 			return -1;
 		}
 		strcpy(cfg->dname, value);
