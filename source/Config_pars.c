@@ -307,7 +307,7 @@ static int board_cfg(struct settings_brd *cfg, char *option, char *value, int li
 			cfg->sync_src = 0x01;
 		} else if( strcmp(value,"RS-485") == 0 ){
 			cfg->sync_src = 0x02;
-		} else if( strcmp(value,"IEE1588") == 0 ){
+		} else if( strcmp(value,"IEEE1588") == 0 ){
 			cfg->sync_src = 0x03;
 		} else {
 			printf("ERROR (config): %d: bad option \"%s\" value \"%s\"\n",lineno, option, value);
