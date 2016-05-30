@@ -94,6 +94,12 @@ static void pabort(const char *s){
     struct settings_ch cfg_ch_old[3] = {0};
     struct settings_ch cfg_ch_new[3] = {0};
 
+    struct settings_brd cfg_brd_old;
+    struct settings_brd cfg_brd_new;
+    memset(&cfg_brd_old, 0, sizeof(cfg_brd_old));
+    memset(&cfg_brd_new, 0, sizeof(cfg_brd_new));
+
+
 
     FILE *fd_config_file = fopen("/kti_bb_ss/KTIVT_BB_SS.conf", "r");
     if(fd_config_file==NULL){
@@ -103,11 +109,10 @@ static void pabort(const char *s){
     }
 
     // read config
-    parse_config(fd_config_file, cfg_ch_old, 3);
-    //дать синхро импульс
+    parse_config(fd_config_file, &cfg_brd_old, cfg_ch_old, 3); //дописать проверку возврата
     fclose(fd_config_file);
 
-    /*
+/*
     fd_config_file = fopen("/kti_bb_ss/KTIVT_BB_SSnew.conf", "r");
     if(fd_config_file==NULL){
     	//сделать запись в лог фаил
@@ -119,9 +124,10 @@ static void pabort(const char *s){
     parse_config(fd_config_file, cfg_ch_new, 3);
     fclose(fd_config_file);
 */
-    //sent settings to analog channel
+
+    //set settings at analog channel
     //дописать команду синк!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    ret = parse_sent_settings (fd_SPI_BB, cfg_ch_old, cfg_ch_new, sizeof(cfg_ch_old[0]) ,0, 3);
+    ret = parse_set_settings (fd_SPI_BB, cfg_ch_old, cfg_ch_new, sizeof(cfg_ch_old[0]) ,0, 3);
 	if (ret==-1){
 		perror("parse_sent_settings() - FAILUR");
 		return EXIT_FAILURE;
@@ -134,9 +140,6 @@ static void pabort(const char *s){
 		return EXIT_FAILURE;
 	}
 
-*/
-
-/*
     int testmemcmp;
 
     testmemcmp = memcmp(&cfg_ch_old[0], &cfg_ch_new[0], sizeof(cfg_ch_old[1]) );
@@ -149,35 +152,26 @@ static void pabort(const char *s){
     	printf("massive not same\n");
     }
 */
-
-
-//добавить обработку полученных настроек
-
-
+#ifdef DEBUG_MODE
 	printf("Start Eth connect \n");// сделать запись в лог
+#endif
 
 	    int sock, n;
 	    struct sockaddr_in addr;
 	    struct addrinfo *res, *t;
 	    struct addrinfo hints = { 0 };
-	    char *service, *servername;
 
-	    if( argc < 3 ){
-	        printf("Need server name and port\n");// сделать запись в лог
-	        exit(1);
-	    }
-
-	    servername = strdup(argv[1]);
-	    service = strdup(argv[2]);
+	  //  if( argc < 3 ){
+	    //    printf("Need server name and port\n");// сделать запись в лог
+	     //   exit(1);
+	    //}
 
 	    hints.ai_family   = AF_UNSPEC;
 	    hints.ai_socktype = SOCK_STREAM;
-	    n = getaddrinfo(servername, service, &hints, &res);
+	    n = getaddrinfo(cfg_brd_old.dname, cfg_brd_old.port, &hints, &res);
 
 	    if (n < 0) {
-	        fprintf(stderr, "%s for %s:%s\n", gai_strerror(n), servername, service);// сделать запись в лог
-	        free(service);
-	        free(servername);
+	        fprintf(stderr, "%s for %s:%s\n", gai_strerror(n), cfg_brd_old.dname, cfg_brd_old.port);// сделать запись в лог
 	        printf("ERROR(%s:%d): getaddrinfo failed!\n",__FILE__,__LINE__);// сделать запись в лог
 	        exit(1);
 	    }
@@ -194,8 +188,7 @@ static void pabort(const char *s){
 	    }
 
 	    freeaddrinfo(res);
-	    free(servername);
-	    free(service);
+
 
 	    if( sock == -1 ){
 	    	printf("Eth connect ERROR!\n");// сделать запись в лог
@@ -230,14 +223,6 @@ static void pabort(const char *s){
     pfd.fd = sock;
     pfd.events = POLLIN | POLLHUP;
     pfd.revents = 0;
-
-
-    //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-// не звбыть убрать при тесте с Антоном
-    //   uint8_t bufttew[10]= {0xAA};
-
-   ///    send(sock, bufttew, sizeof(bufttew), 0);
-       ///////////////////////////////////////////////////
 
 while(1){
 

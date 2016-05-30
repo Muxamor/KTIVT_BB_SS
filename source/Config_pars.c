@@ -24,6 +24,11 @@ int get_channel( char *str)
 {
     long int channel;
     char *eptr;
+
+    if( 0 == strcmp(str, "board") ){
+    	return 0;
+    }
+
     if( strstr(str, "ch") != str ){
         return -1;
     }
@@ -108,7 +113,7 @@ typedef struct
     int int_val;
 } description_t;
 
-static description_t options[] = {
+static description_t options_chan[] = {
 	{ 1, "Mode",    0, 0, 0 },
 	{ 2, "State",   0, 0, 0 },
     { 3, "Input",   0, 0, 0 },
@@ -122,20 +127,29 @@ static description_t options[] = {
 	{ 11,"KEMS",    1, 16, 0 },
 	{ 12,"X_Y_Z",   0, 0, 0 },
 };
-static int options_size = sizeof(options) / sizeof(options[0]);
+static int options_chan_sz = sizeof(options_chan) / sizeof(options_chan[0]);
+
+static description_t options_brd[] = {
+	{ 1, "dname",    	0, 0, 0 },
+	{ 2, "Port",   		0, 0, 0 },
+    { 3, "SerialNum",   1, 16, 0 },
+    { 4, "SyncSrc",   	0, 0, 0 },
+    { 5, "DataReceiver",0, 0, 0 }
+};
+static int options_brd_sz = sizeof(options_brd) / sizeof(options_brd[0]);
 
 static int
-preprocess_option(char *option, char *value)
+preprocess_option(description_t *opts, int opt_num, char *option, char *value)
 {
     int i;
-    for(i=0; i < options_size; i++){
-        if( strcmp(option, options[i].name) != 0){
+    for(i=0; i < opt_num; i++){
+        if( strcmp(option, opts[i].name) != 0){
             continue;
         }
 
-        if( options[i].convert ){
+        if( opts[i].convert ){
             char *eptr;
-            options[i].int_val = strtol(value, &eptr, options[i].base);
+            opts[i].int_val = strtol(value, &eptr, opts[i].base);
             if( eptr == value ){
                 return -1;
             }
@@ -146,12 +160,181 @@ preprocess_option(char *option, char *value)
     return -1;
 }
 
-int parse_config(FILE *fp, struct settings_ch *cfg, int chan_num)
+static int channel_cfg(struct settings_ch *cfg, char *option, char *value, int lineno)
 {
+	int idx;
+
+	idx = preprocess_option(options_chan, options_chan_sz, option, value);
+	if( 0 > idx ){
+		// write to log
+		printf("ERROR (config): %d: bad option \"%s\" or it's value \"%s\"\n",
+				lineno, option, value);
+		return -1;
+	}
+
+	switch( options_chan[idx].id ){
+	case 1:
+		if( strcmp(value, "on") == 0){
+			cfg->mode = 1;
+		}else if( strcmp(value, "off") == 0){
+			cfg->mode = 0;
+		}
+		break;
+
+	case 2:
+		if( strcmp(value, "start") == 0){
+			cfg->state = 1;
+		}else if( strcmp(value, "stop") == 0){
+			cfg->state = 0;
+		}
+		break;
+
+
+	case 3:
+		if( strcmp(value, "1:1") == 0 ){
+			cfg->config_ch.input = inp_1_1;
+		} else if( strcmp(value,"1:10") == 0 ){
+			cfg->config_ch.input = inp_1_10;
+		} else if( strcmp(value,"0V") == 0 ){
+			cfg->config_ch.input = inp_0V;
+		} else if( strcmp(value, "calibrator" ) == 0){
+			cfg->config_ch.input = inp_cal;
+		} else if( strcmp(value,"z-state") == 0){
+			cfg->config_ch.input = z_state;
+		} else {
+			printf("ERROR (config): %d: bad option \"%s\" value \"%s\"\n",
+					lineno, option, value);
+			return -1;
+		}
+		break;
+
+	case 4:
+		cfg->config_ch.ku1 = options_chan[idx].int_val;
+		break;
+
+	case 5:
+		cfg->config_ch.fcut = options_chan[idx].int_val;
+		break;
+
+	case 6:
+		cfg->config_ch.ku2 = options_chan[idx].int_val;
+		break;
+
+	case 7:
+		cfg->config_ch.fd = options_chan[idx].int_val;
+		break;
+
+	case 8:
+		cfg->config_ch.fres = options_chan[idx].int_val;
+		break;
+
+	case 9:
+		cfg->config_ch.ID_ch = options_chan[idx].int_val;
+		break;
+
+	case 10:
+		cfg->config_ch.SID_ch = options_chan[idx].int_val;
+		break;
+
+	case 11:
+		cfg->config_ch.KEMS = options_chan[idx].int_val;
+		break;
+
+	case 12:
+		if( strcmp(value, "X") == 0 ){
+			cfg->config_ch.X_Y_Z  = 0x01;
+		} else if( strcmp(value,"Y") == 0 ){
+			cfg->config_ch.X_Y_Z  = 0x02;
+		} else if( strcmp(value,"Z") == 0 ){
+			cfg->config_ch.X_Y_Z  = 0x03;
+		} else if( strcmp(value,"NONE") == 0 ){
+			cfg->config_ch.X_Y_Z  = 0x00;
+		} else {
+			printf("ERROR (config): %d: bad option \"%s\" value \"%s\"\n",lineno, option, value);
+			return -1;
+		}
+		break;
+	}
+
+	return 0;
+}
+
+static int board_cfg(struct settings_brd *cfg, char *option, char *value, int lineno)
+{
+	int idx;
+
+	idx = preprocess_option(options_brd, options_brd_sz, option, value);
+	if( 0 > idx ){
+		// write to log
+		printf("ERROR (config): %d: bad option \"%s\" or it's value \"%s\"\n",
+				lineno, option, value);
+		return -1;
+	}
+
+	switch( options_brd[idx].id ){
+	case 1:
+		if( strlen(value) > sizeof(cfg->dname) ){
+			printf("ERROR (config): %d: bad length of option \"%s\" value\n",
+					lineno, option, value);
+			return -1;
+		}
+		strcpy(cfg->dname, value);
+		break;
+
+	case 2:
+		if( strlen(value) > sizeof(cfg->port) ){
+			printf("ERROR (config): %d: bad length of option \"%s\" value\n",
+					lineno, option, value);
+			return -1;
+		}
+		strcpy(cfg->port, value);
+		break;
+	case 3:
+		cfg->sn = options_brd[idx].int_val;
+		break;
+
+	case 4:
+		if( strcmp(value, "GPS_auto") == 0 ){
+			cfg->sync_src = 0x00;
+		} else if( strcmp(value,"GPS_master") == 0 ){
+			cfg->sync_src = 0x01;
+		} else if( strcmp(value,"RS-485") == 0 ){
+			cfg->sync_src = 0x02;
+		} else if( strcmp(value,"IEE1588") == 0 ){
+			cfg->sync_src = 0x03;
+		} else {
+			printf("ERROR (config): %d: bad option \"%s\" value \"%s\"\n",lineno, option, value);
+			return -1;
+		}
+		break;
+
+	case 5:
+		if( strcmp(value, "SD") == 0 ){
+			cfg->sync_src = 0x00;
+		} else if( strcmp(value,"SD_ring") == 0 ){
+			cfg->sync_src = 0x01;
+		} else if( strcmp(value,"Ethernet") == 0 ){
+			cfg->sync_src = 0x02;
+		} else if( strcmp(value,"RS-485") == 0 ){
+			cfg->sync_src = 0x03;
+		} else {
+			printf("ERROR (config): %d: bad option \"%s\" value \"%s\"\n",lineno, option, value);
+			return -1;
+		}
+		break;
+		cfg->data_recv = options_chan[idx].int_val;
+		break;
+	}
+
+	return 0;
+}
+
+
+int parse_config(FILE *fp, struct settings_brd *brd_cfg, struct settings_ch *ch_cfg, int chan_num){
+	char option[1024], value[1024];
     int lineno;
     while( !feof(fp) ){
-        char option[1024], value[1024];//зачем объевлять в while? Вопрос к Теме
-        int chan, idx;//зачем объевлять в while? Вопрос к Теме
+        int chan;
         int ret = read_setting(fp, &lineno, &chan, option, value, 1024);
         if( 0 > ret && !feof(fp) ){
             exit(0);
@@ -159,103 +342,22 @@ int parse_config(FILE *fp, struct settings_ch *cfg, int chan_num)
             break;
         }
 
-        if( chan > chan_num ){
+        if( chan < 0 || chan > chan_num ){
             printf("ERROR (config): %d: bad channel number %d, max is %d\n",
                     lineno, chan, chan_num);
             return -1;
         }
 
-        idx = preprocess_option(option, value);
-        if( 0 > idx ){
-            // write to log
-            printf("ERROR (config): %d: bad option \"%s\" or it's value \"%s\"\n",
-                    lineno, option, value);
-            return -1;
-        }
-
-        switch( options[idx].id ){
-        case 1:
-        	if( strcmp(value, "on") == 0){
-        		cfg[chan-1].mode = 1;
-        	}else if( strcmp(value, "off") == 0){
-        		cfg[chan-1].mode = 0;
+        if( chan > 0 ){
+        	int rc = channel_cfg(&ch_cfg[chan - 1], option, value, lineno);
+        	if( rc ) {
+        		return rc;
         	}
-        	break;
-
-        case 2:
-        	if( strcmp(value, "start") == 0){
-        		cfg[chan-1].state = 1;
-        	}else if( strcmp(value, "stop") == 0){
-        		cfg[chan-1].state = 0;
+        } else {
+        	int rc = board_cfg(brd_cfg, option, value, lineno);
+        	if( rc ) {
+        		return rc;
         	}
-        	break;
-
-
-        case 3:
-            if( strcmp(value, "1:1") == 0 ){
-                cfg[chan-1].config_ch.input = inp_1_1;
-            } else if( strcmp(value,"1:10") == 0 ){
-            	cfg[chan-1].config_ch.input = inp_1_10;
-            } else if( strcmp(value,"0V") == 0 ){
-            	cfg[chan-1].config_ch.input = inp_0V;
-            } else if( strcmp(value, "calibrator" ) == 0){
-            	cfg[chan-1].config_ch.input = inp_cal;
-            } else if( strcmp(value,"z-state") == 0){
-            	cfg[chan-1].config_ch.input = z_state;
-            } else {
-                printf("ERROR (config): %d: bad option \"%s\" value \"%s\"\n",
-                    lineno, option, value);
-                return -1;
-            }
-            break;
-
-        case 4:
-        	cfg[chan-1].config_ch.ku1 = options[idx].int_val;
-            break;
-
-        case 5:
-        	cfg[chan-1].config_ch.fcut = options[idx].int_val;
-            break;
-
-        case 6:
-        	cfg[chan-1].config_ch.ku2 = options[idx].int_val;
-            break;
-
-        case 7:
-        	cfg[chan-1].config_ch.fd = options[idx].int_val;
-            break;
-
-        case 8:
-            cfg[chan-1].config_ch.fres = options[idx].int_val;
-            break;
-
-        case 9:
-        	cfg[chan-1].config_ch.ID_ch = options[idx].int_val;
-        	break;
-
-        case 10:
-        	cfg[chan-1].config_ch.SID_ch = options[idx].int_val;
-        	break;
-
-        case 11:
-            cfg[chan-1].config_ch.KEMS = options[idx].int_val;
-            break;
-
-        case 12:
-            if( strcmp(value, "X") == 0 ){
-            	cfg[chan-1].config_ch.X_Y_Z  = 0x01;
-            } else if( strcmp(value,"Y") == 0 ){
-            	cfg[chan-1].config_ch.X_Y_Z  = 0x02;
-            } else if( strcmp(value,"Z") == 0 ){
-            	cfg[chan-1].config_ch.X_Y_Z  = 0x03;
-            } else if( strcmp(value,"NONE") == 0 ){
-            	cfg[chan-1].config_ch.X_Y_Z  = 0x00;
-            } else {
-            	printf("ERROR (config): %d: bad option \"%s\" value \"%s\"\n",lineno, option, value);
-            	return -1;
-            }
-            break;
-
         }
     }
     return 0;

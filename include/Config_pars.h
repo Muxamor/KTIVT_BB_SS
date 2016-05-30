@@ -1,6 +1,9 @@
 #ifndef CONFIG_PARS_H
 #define CONFIG_PARS_H
 
+#include <unistd.h>
+#include <stdint.h>
+
 typedef enum { inp_1_1, inp_1_10, inp_0V, inp_cal, z_state } input_t;
 
 struct config_t
@@ -23,7 +26,15 @@ struct settings_ch{
 	struct config_t config_ch;
 };
 
-int parse_config(FILE *fp, struct settings_ch *cfg, int chan_num);
+struct settings_brd{
+	char dname[256];
+	char port[7];
+	uint16_t sn;
+	uint8_t sync_src;
+	uint8_t data_recv;
+};
 
+
+int parse_config(FILE *fp, struct settings_brd *brd_cfg, struct settings_ch *ch_cfg, int chan_num);
 
 #endif
