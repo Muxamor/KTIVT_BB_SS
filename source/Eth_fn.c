@@ -34,7 +34,7 @@ int sendall(int fd_s, char *buf, int len, int flags){
 }
 
 
-int pars_eth_coomand_for_BB( int fd_SPI,unsigned int fd_I2C , uint8_t num_command,  uint16_t *tx_buf,  uint16_t *rx_buf, uint16_t size ){
+int pars_eth_coomand_for_BB( int fd_SPI,unsigned int fd_I2C , uint8_t num_command,  uint16_t *tx_buf,  uint16_t *rx_buf, uint16_t size, struct settings_brd *settings_brd ){
 
 	int ret, ret1 ,ret2;
 	gpio_name_output_pin gpio_pin_res;
@@ -113,9 +113,12 @@ int pars_eth_coomand_for_BB( int fd_SPI,unsigned int fd_I2C , uint8_t num_comman
 				return -1;
 			}
 			break;
-	    ////
-        ///Заглушка
-		case 0x19: // Дописать запоминания серийного номер на BB
+
+		case 0x19:
+			rx_buf[0] = 0x0001;
+			rx_buf[1] = 0x0000;
+			settings_brd->sn = tmp_tx_buf[1];
+
 			ret = spi_transfer_command_analog_ch ( fd_SPI, GPIO_SPI_CS_Ch1, GPIO_SPI_INT_Ch1, tmp_tx_buf,rx_buf, size, 0 );
 		 	ret1 = spi_transfer_command_analog_ch ( fd_SPI, GPIO_SPI_CS_Ch2, GPIO_SPI_INT_Ch2, tmp_tx_buf,rx_buf, size, 0 );
 		 	ret2 = spi_transfer_command_analog_ch ( fd_SPI, GPIO_SPI_CS_Ch3, GPIO_SPI_INT_Ch3, tmp_tx_buf,rx_buf, size, 0 );
@@ -124,10 +127,11 @@ int pars_eth_coomand_for_BB( int fd_SPI,unsigned int fd_I2C , uint8_t num_comman
 		 		return -1;
 		 	}
 			break;
-		case 0x1A: // Дописать запоминания серийного номер на BB
-			spi_transfer_command_analog_ch ( fd_SPI, GPIO_SPI_CS_Ch1, GPIO_SPI_INT_Ch1, tmp_tx_buf,rx_buf,size, 0 );
+
+		case 0x1A:
+			rx_buf[0] = 0x1A00;
+			rx_buf[1] = settings_brd->sn;
 			break;
-        //////
 
 		case 0x35:
 			rx_buf[0] = 0x0001;
@@ -388,7 +392,7 @@ int pars_eth_coomand_for_BB( int fd_SPI,unsigned int fd_I2C , uint8_t num_comman
 
 
 
-int pars_eth_command_parcel(int fd_SPI,unsigned int fd_I2C, int fd_socket, uint8_t *rx_buf_eth,  uint8_t *tx_buf_eth, uint32_t *real_rx_tx_buf_eth_size, struct settings_ch *settings_channels){
+int pars_eth_command_parcel(int fd_SPI,unsigned int fd_I2C, int fd_socket, uint8_t *rx_buf_eth,  uint8_t *tx_buf_eth, uint32_t *real_rx_tx_buf_eth_size, struct settings_ch *settings_channels, struct settings_brd *settings_brd){
 
 	uint16_t tx_mk_buf[2];
  	uint16_t rx_mk_buf[2];
@@ -505,7 +509,7 @@ int pars_eth_command_parcel(int fd_SPI,unsigned int fd_I2C, int fd_socket, uint8
 
  		if(number_channel == 0x0000){ // Command for BB
 
- 			ret = pars_eth_coomand_for_BB( fd_SPI, fd_I2C, number_command,  tx_mk_buf,  rx_mk_buf, sizeof(tx_mk_buf));
+ 			ret = pars_eth_coomand_for_BB( fd_SPI, fd_I2C, number_command,  tx_mk_buf,  rx_mk_buf, sizeof(tx_mk_buf), settings_brd);
 
  		}else{ // Command for analog channel
 

@@ -329,8 +329,7 @@ static int board_cfg(struct settings_brd *cfg, char *option, char *value, int li
 			return -1;
 		}
 		break;
-		cfg->data_recv = options_chan[idx].int_val;
-		break;
+
 	}
 
 	return 0;

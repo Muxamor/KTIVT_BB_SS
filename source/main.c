@@ -106,15 +106,13 @@ static void pabort(const char *s){
     	return EXIT_FAILURE;
     }
 
-    // read config
-    //дописать команду синк
-    ret = parse_config(fd_config_file, &cfg_brd_old, cfg_ch_old, 3); //дописать проверку возврата
+    // read configure file
+    ret = parse_config(fd_config_file, &cfg_brd_old, cfg_ch_old, 3);
     fclose(fd_config_file);
 	if (ret==-1){
 		perror("Config file no correct"); // сдлеать запись в лог
 		return EXIT_FAILURE;
 	}
-
 
 /*
     fd_config_file = fopen("/kti_bb_ss/KTIVT_BB_SSnew.conf", "r");
@@ -131,7 +129,7 @@ static void pabort(const char *s){
 
     //set settings at analog channel
     //дописать команду синк!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    ret = parse_set_settings (fd_SPI_BB, cfg_ch_old, cfg_ch_new, sizeof(cfg_ch_old[0]) ,0, 3);
+    ret = parse_set_settings_analog_ch (fd_SPI_BB, cfg_ch_old, cfg_ch_new, sizeof(cfg_ch_old[0]) ,0, 3);
 	if (ret==-1){
 		perror("parse_sent_settings() - FAILUR");
 		return EXIT_FAILURE;
@@ -260,7 +258,7 @@ while(1){
 #ifdef DEBUG_MODE
 				printf("Got command parcel from Eth\n");
 #endif
-				ret = pars_eth_command_parcel(fd_SPI_BB, fd_i2c, sock, rx_buf_eth_parcel, tx_buf_eth_parcel, size_rx_tx_buf_eth, cfg_ch_old);
+				ret = pars_eth_command_parcel(fd_SPI_BB, fd_i2c, sock, rx_buf_eth_parcel, tx_buf_eth_parcel, size_rx_tx_buf_eth, cfg_ch_old, &cfg_brd_old);
 				if(ret == -1){
 					printf("Error Eth command parser\n");
 					close(sock);

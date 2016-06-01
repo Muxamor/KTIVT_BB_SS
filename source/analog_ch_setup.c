@@ -438,7 +438,7 @@
 
 
 
- int parse_set_settings (int fd_SPI, struct settings_ch *settings_old, struct settings_ch *settings_new, uint16_t size_settings, uint8_t compare_settings, uint8_t quantity_channels){
+ int parse_set_settings_analog_ch (int fd_SPI, struct settings_ch *settings_old, struct settings_ch *settings_new, uint16_t size_settings, uint8_t compare_settings, uint8_t quantity_channels){
 
           uint8_t apply_settings[ quantity_channels ];
           uint8_t i, number_ch;
