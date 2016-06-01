@@ -193,7 +193,6 @@ static void pabort(const char *s){
 
 	    freeaddrinfo(res);
 
-
 	    if( sock == -1 ){
 	    	printf("Eth connect ERROR!\n");// сделать запись в лог
 	    	exit(1);
@@ -241,7 +240,7 @@ while(1){
 
 	if( pfd.revents & POLLHUP ){
 
-		printf(" Server close POLLHUP\n");
+		printf("Server close POLLHUP\n");
 		close(sock);
 		break;
 	}
@@ -259,23 +258,23 @@ while(1){
 
 			if(tipe_eth_rx_parsel == 0x0001){// get parsel from server
 #ifdef DEBUG_MODE
-				printf(" Got command parcel from Eth\n");
+				printf("Got command parcel from Eth\n");
 #endif
 				ret = pars_eth_command_parcel(fd_SPI_BB, fd_i2c, sock, rx_buf_eth_parcel, tx_buf_eth_parcel, size_rx_tx_buf_eth, cfg_ch_old);
 				if(ret == -1){
-					printf(" Error Eth command parser\n");
+					printf("Error Eth command parser\n");
 					close(sock);
 					break;
 
 				}
 #ifdef DEBUG_MODE
-				printf(" Parser eth command FINISH work\n");
+				printf("Parser eth command FINISH work\n");
 #endif
 			}
 
 		}else{
 #ifdef DEBUG_MODE
-			printf(" Server close Eth connection\n");
+			printf("Server close Eth connection\n");
 #endif
 			close(sock);
 			break;

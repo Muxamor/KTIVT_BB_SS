@@ -17,6 +17,7 @@
 int i2c_device_open(char *device);
 int Defult_setup_M41T64(unsigned int fd_i2c, unsigned int addr_slave );
 int M41T64_set_SQW_clock (int fd_i2c, uint16_t clock_SQW, unsigned int addr_slave );
+int get_ml_seconds_M41T64(unsigned int fd_i2c, unsigned int addr_slave);
 int set_seconds_M41T64(unsigned int fd_i2c, uint8_t val_seconds, unsigned int addr_slave);
 int get_seconds_M41T64(unsigned int fd_i2c, unsigned int addr_slave);
 int set_minutes_M41T64(unsigned int fd_i2c, uint8_t val_minutes, unsigned int addr_slave);

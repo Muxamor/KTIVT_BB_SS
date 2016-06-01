@@ -178,6 +178,64 @@ int M41T64_set_SQW_clock (unsigned int fd_i2c, uint16_t clock_SQW, unsigned int 
 
 }
 
+int set_ml_seconds_M41T64(unsigned int fd_i2c, uint8_t val_seconds, unsigned int addr_slave){
+
+	uint8_t buf[2];
+
+
+	//Write value of ml seconds
+	buf[0] = 0x00; // Address register in M41T64
+	buf[1] = val_seconds;
+
+	//Set address for the device on the i2c bus
+	if (ioctl(fd_i2c,I2C_SLAVE,addr_slave) < 0) {
+		printf("Failed to acquire bus access and/or talk to slave.\n");
+		// сделать запись в лог
+		return -1;
+	}
+
+	if( write(fd_i2c,buf,2) != 2) {
+		printf("Failed to write to the i2c bus register 0x00.\n");
+		// сделать запись в лог
+		return -1;
+	}
+
+	return 0;
+}
+
+int get_ml_seconds_M41T64(unsigned int fd_i2c, unsigned int addr_slave){
+
+	uint8_t buf[2];
+	uint8_t ret;
+
+	//Set address for the device on the i2c bus
+	if (ioctl(fd_i2c,I2C_SLAVE,addr_slave) < 0) {
+		printf("Failed to acquire bus access and/or talk to slave.\n");
+		// сделать запись в лог
+		return -1;
+	}
+
+	//Write value of  mlseconds
+	buf[0] = 0x00; // Address register in M41T64
+
+	if( write(fd_i2c,buf,1) != 1) {
+		printf("Failed to write to read  the i2c bus register 0x00.\n");
+		// сделать запись в лог
+		return -1;
+	}
+
+    if( read (fd_i2c,buf,1) !=1){
+    	printf("Failed to read to the i2c bus register 0x00.\n");
+    			// сделать запись в лог
+    	return -1;
+    }
+
+    ret = buf[0];
+
+	return ret;
+}
+
+
 
 int set_seconds_M41T64(unsigned int fd_i2c, uint8_t val_seconds, unsigned int addr_slave){
 

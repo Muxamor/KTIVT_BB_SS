@@ -129,6 +129,25 @@ int pars_eth_coomand_for_BB( int fd_SPI,unsigned int fd_I2C , uint8_t num_comman
 			break;
         //////
 
+		case 0x35:
+			rx_buf[0] = 0x0001;
+			rx_buf[1] = 0x0000;
+			ret = set_ml_seconds_M41T64(fd_I2C,(uint8_t) tmp_tx_buf[0], ADDR_I2C_SLAVE_M41T64);
+			if(ret == -1){
+				return -1;
+			}
+			break;
+
+		case 0x36:
+			ret = get_ml_seconds_M41T64(fd_I2C, ADDR_I2C_SLAVE_M41T64);
+			if(ret == -1){
+				return -1;
+			}else{
+				rx_buf[0] = 0x3600|(uint8_t)ret;
+				rx_buf[1] = 0x0000;
+			}
+			break;
+
 		case 0x37:
 			rx_buf[0] = 0x0001;
 			rx_buf[1] = 0x0000;
@@ -267,10 +286,6 @@ int pars_eth_coomand_for_BB( int fd_SPI,unsigned int fd_I2C , uint8_t num_comman
 			break;
 		case 0x2D:
 			rx_buf[0] = 0x2D02;
-			rx_buf[1] = 0x0000;
-			break;
-		case 0x36:
-			rx_buf[0] = 0x3600;
 			rx_buf[1] = 0x0000;
 			break;
 		case 0x43:
