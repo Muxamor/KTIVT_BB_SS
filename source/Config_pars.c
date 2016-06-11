@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <fcntl.h>
 #include "../include/main.h"
 #include "../include/Config_pars.h"
 
@@ -134,7 +135,8 @@ static description_t options_brd[] = {
 	{ 2, "Port",   		0, 0, 0 },
     { 3, "SerialNum",   1, 16, 0 },
     { 4, "SyncSrc",   	0, 0, 0 },
-    { 5, "DataReceiver",0, 0, 0 }
+    { 5, "DataReceiver",0, 0, 0 },
+	{ 6, "num_eqe_rec" ,1, 10, 0}
 };
 static int options_brd_sz = sizeof(options_brd) / sizeof(options_brd[0]);
 
@@ -186,9 +188,10 @@ static int channel_cfg(struct settings_ch *cfg, char *option, char *value, int l
 			cfg->state = 1;
 		}else if( strcmp(value, "stop") == 0){
 			cfg->state = 0;
+		}else if ( strcmp(value, "earthquake_emul") == 0 ){
+			cfg->state = 2;
 		}
 		break;
-
 
 	case 3:
 		if( strcmp(value, "1:1") == 0 ){
@@ -270,6 +273,7 @@ static int channel_cfg(struct settings_ch *cfg, char *option, char *value, int l
 static int board_cfg(struct settings_brd *cfg, char *option, char *value, int lineno)
 {
 	int idx;
+	char buf_path[64] = {0};
 
 	idx = preprocess_option(options_brd, options_brd_sz, option, value);
 	if( 0 > idx ){
@@ -325,6 +329,18 @@ static int board_cfg(struct settings_brd *cfg, char *option, char *value, int li
 		} else if( strcmp(value,"RS-485") == 0 ){
 			cfg->sync_src = 0x03;
 		} else {
+			printf("ERROR (config): %d: bad option \"%s\" value \"%s\"\n",lineno, option, value);
+			return -1;
+		}
+		break;
+
+	case 6:
+		cfg->num_file_earthquake_emul = options_brd[idx].int_val;
+
+		snprintf(buf_path,sizeof(buf_path), "/kti_bb_ss/earthquake_emul_%d.ktivtd1",cfg->num_file_earthquake_emul);
+
+		cfg->fd_earthquake_emul = open(buf_path, O_RDONLY);
+		if (cfg->fd_earthquake_emul < 0){
 			printf("ERROR (config): %d: bad option \"%s\" value \"%s\"\n",lineno, option, value);
 			return -1;
 		}

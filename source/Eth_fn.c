@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include "../include/GPIO_SS.h"
 #include "../include/SPI_SS.h"
 #include "../include/BB_Setup.h"
@@ -34,7 +35,7 @@ int sendall(int fd_s, char *buf, int len, int flags){
 }
 
 
-int pars_eth_coomand_for_BB( int fd_SPI,unsigned int fd_I2C , uint8_t num_command,  uint16_t *tx_buf,  uint16_t *rx_buf, uint16_t size, struct settings_brd *settings_brd ){
+int pars_eth_coomand_for_BB( int fd_SPI,unsigned int fd_I2C , uint8_t num_command,  uint16_t *tx_buf,  uint16_t *rx_buf, uint16_t size, struct settings_ch *settings_channels, struct settings_brd *settings_brd ){
 
 	int ret, ret1 ,ret2;
 	gpio_name_output_pin gpio_pin_res;
@@ -54,6 +55,10 @@ int pars_eth_coomand_for_BB( int fd_SPI,unsigned int fd_I2C , uint8_t num_comman
 		 	if(ret == -1 || ret1 == -1 || ret2 == -1  ){
 		 		return -1;
 		 	}
+
+		 	settings_channels[0].state = 0;
+		 	settings_channels[1].state = 0;
+		 	settings_channels[2].state = 0;
 		 	break;
 
 		case 0x21: // Start Sync Enable
@@ -70,11 +75,39 @@ int pars_eth_coomand_for_BB( int fd_SPI,unsigned int fd_I2C , uint8_t num_comman
 			}
 
 			if( tmp_tx_buf[0] == 0x2101 ){
+				settings_channels[0].state = 1;
+				settings_channels[1].state = 1;
+				settings_channels[2].state = 1;
 				gpio_set_value(fd_GPIO_pin_output[GPIO_Sync_Ch1_Ch2_Ch3] , HIGHT);
 				gpio_set_value(fd_GPIO_pin_output[GPIO_Sync_Ch1_Ch2_Ch3] , LOW);
+
 				printf(" Enable Sync\n");
 
-			}else if(tmp_tx_buf[0] == 0x2108 ){
+			}else if( tmp_tx_buf[0] == 0x2104 ){
+
+				char buf_path[64] = {0};
+
+				settings_channels[0].state = 2;
+				settings_channels[1].state = 2;
+				settings_channels[2].state = 2;
+
+				if(settings_brd->fd_earthquake_emul > 0 ){
+					close(settings_brd->fd_earthquake_emul);
+				}
+
+				settings_brd->num_file_earthquake_emul = (uint8_t)tmp_tx_buf[1];
+				snprintf(buf_path,sizeof(buf_path), "/kti_bb_ss/earthquake_emul_%d.ktivtd1", settings_brd->num_file_earthquake_emul);
+				settings_brd->fd_earthquake_emul = open(buf_path, O_RDONLY);
+
+				if (settings_brd->fd_earthquake_emul < 0){
+					settings_channels[0].state = 0;
+					settings_channels[1].state = 0;
+					settings_channels[2].state = 0;
+					printf("Error open fd_earthquake_emul \n");
+					return -1;
+				}
+
+			}else if( tmp_tx_buf[0] == 0x2108 ){
 				//TO DO дописать запуск по времени
 			}else{
 				return -1;
@@ -509,7 +542,7 @@ int pars_eth_command_parcel(int fd_SPI,unsigned int fd_I2C, int fd_socket, uint8
 
  		if(number_channel == 0x0000){ // Command for BB
 
- 			ret = pars_eth_coomand_for_BB( fd_SPI, fd_I2C, number_command,  tx_mk_buf,  rx_mk_buf, sizeof(tx_mk_buf), settings_brd);
+ 			ret = pars_eth_coomand_for_BB( fd_SPI, fd_I2C, number_command,  tx_mk_buf,  rx_mk_buf, sizeof(tx_mk_buf), settings_channels ,settings_brd);
 
  		}else{ // Command for analog channel
 
@@ -663,4 +696,56 @@ int send_ADC_data_to_Eth( int fd_SPI_BB, uint8_t number_channels, int fd_socket,
 	return 0;
 }
 
+
+int send_earthquake_emul_data_to_Eth(int fd_socket, struct settings_brd cfg_brd){
+
+	uint8_t rx_buf[20000] = {0x00};
+	uint32_t read_size;
+	int ret;
+	uint8_t i;
+	for(i=0; i<3; i++){
+
+		ret = read(cfg_brd.fd_earthquake_emul,rx_buf, 8);
+
+		if( ret  == -1 ){
+			printf("Error: read file earthquake emulation \n");
+			return -1;
+		}else if( ret == 0 ){
+			ret = lseek(cfg_brd.fd_earthquake_emul, 0, SEEK_SET);
+			if(ret < 0){
+				return -1;
+			}
+			ret = read(cfg_brd.fd_earthquake_emul,rx_buf, 8);
+			if(ret < 0){
+				return -1;
+			}
+		}
+
+		read_size =  rx_buf[4]<<8;
+		read_size =  (read_size|rx_buf[5])<<8;
+		read_size =  (read_size|rx_buf[6])<<8;
+		read_size =  read_size|rx_buf[7];
+
+		ret = read(cfg_brd.fd_earthquake_emul, &rx_buf[8], read_size );
+
+		if( ret  == -1 ){
+			printf("Error: read file earthquake emulation \n");
+			return -1;
+		}else if( ret == 0 ){
+			ret = lseek(cfg_brd.fd_earthquake_emul, 0, SEEK_SET);
+			if(ret < 0){
+				return -1;
+			}
+		}
+
+		ret = sendall(fd_socket, rx_buf, read_size+8,0);
+		if(ret !=  read_size+8){
+			printf("Error: not all Earthquake Emulation data send to Eth\n");
+			return -1;
+		}
+
+		printf("Send to eth data Earthquake Emulation ch:%d size: %d \n", i+1, read_size+8);
+	}
+	return 0;
+}
 

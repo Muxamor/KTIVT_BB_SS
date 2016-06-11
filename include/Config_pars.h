@@ -32,6 +32,8 @@ struct settings_brd{
 	uint16_t sn;
 	uint8_t sync_src;
 	uint8_t data_recv;
+	uint8_t num_file_earthquake_emul;
+	int fd_earthquake_emul;
 };
 
 

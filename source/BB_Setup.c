@@ -142,6 +142,10 @@ int reset_analog_channel (gpio_name_output_pin  gpio_name){
 	return 0;
 }
 
+//int parse_set_settings_brd (int fd_SPI, struct settings_brd *settings_old, struct settings_brd *settings_new, uint8_t compare_settings, uint8_t quantity_analog_ch ){
+
+//}
+
 
 
 

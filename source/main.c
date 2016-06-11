@@ -129,7 +129,7 @@ static void pabort(const char *s){
 
     //set settings at analog channel
     //дописать команду синк!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    ret = parse_set_settings_analog_ch (fd_SPI_BB, cfg_ch_old, cfg_ch_new, sizeof(cfg_ch_old[0]) ,0, 3);
+    ret = parse_set_settings_analog_ch(fd_SPI_BB, cfg_ch_old, cfg_ch_new, sizeof(cfg_ch_old[0]) , NO_COMPARE_SETTINGS, 3);
 	if (ret==-1){
 		perror("parse_sent_settings() - FAILUR");
 		return EXIT_FAILURE;
@@ -280,10 +280,25 @@ while(1){
 
 	}
 
-	ret = send_ADC_data_to_Eth(fd_SPI_BB, 3, sock, cfg_ch_old );
-	if(ret != 0){
-		    perror("Error Send data ADC to Eth\n");
+	//send data earthquake emulation
+	if(cfg_ch_old[0].state == 2 || cfg_ch_old[2].state == 2 || cfg_ch_old[3].state == 2 ){
+
+		sleep (1); // sleep 1 second
+		ret = send_earthquake_emul_data_to_Eth(sock, cfg_brd_old);
+		if(ret != 0){
+			printf("Error Send data ADC to Eth\n");
+		}
 	}
+
+//	send data analog channels
+	if(cfg_ch_old[0].state == 1 || cfg_ch_old[2].state == 1 || cfg_ch_old[3].state == 1 ){
+
+		ret = send_ADC_data_to_Eth(fd_SPI_BB, 3, sock, cfg_ch_old );
+		if(ret != 0){
+			printf("Error Send data ADC to Eth\n");
+		}
+	}
+
 
 }
 
