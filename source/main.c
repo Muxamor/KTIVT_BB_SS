@@ -286,7 +286,7 @@ while(1){
 		sleep (1); // sleep 1 second
 		ret = send_earthquake_emul_data_to_Eth(sock, cfg_brd_old);
 		if(ret != 0){
-			printf("Error Send data ADC to Eth\n");
+			printf("Error Send data ADC to Eth\n");// запись в лог
 		}
 	}
 
@@ -295,7 +295,7 @@ while(1){
 
 		ret = send_ADC_data_to_Eth(fd_SPI_BB, 3, sock, cfg_ch_old );
 		if(ret != 0){
-			printf("Error Send data ADC to Eth\n");
+			printf("Error Send data ADC to Eth\n");// запись в лог
 		}
 	}
 
