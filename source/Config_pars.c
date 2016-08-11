@@ -131,12 +131,13 @@ static description_t options_chan[] = {
 static int options_chan_sz = sizeof(options_chan) / sizeof(options_chan[0]);
 
 static description_t options_brd[] = {
-	{ 1, "dname",    	0, 0, 0 },
-	{ 2, "Port",   		0, 0, 0 },
-    { 3, "SerialNum",   1, 16, 0 },
-    { 4, "SyncSrc",   	0, 0, 0 },
-    { 5, "DataReceiver",0, 0, 0 },
-	{ 6, "num_eqe_rec" ,1, 10, 0}
+	{ 1, "dname",    	    0, 0, 0 },
+	{ 2, "Port",   		    0, 0, 0 },
+    { 3, "SerialNum",       1, 16, 0 },
+    { 4, "SyncSrc",   	    0, 0, 0 },
+    { 5, "DataReceiver",    0, 0, 0 },
+	{ 6, "num_eqe_rec" ,    1, 10, 0},
+	{ 7, "type_connection", 0, 0, 0 }
 };
 static int options_brd_sz = sizeof(options_brd) / sizeof(options_brd[0]);
 
@@ -341,6 +342,17 @@ static int board_cfg(struct settings_brd *cfg, char *option, char *value, int li
 
 		cfg->fd_earthquake_emul = open(buf_path, O_RDONLY);
 		if (cfg->fd_earthquake_emul < 0){
+			printf("ERROR (config): %d: bad option \"%s\" value \"%s\"\n",lineno, option, value);
+			return -1;
+		}
+		break;
+
+	case 7:
+		if( strcmp(value, "client") == 0 ){
+			cfg->eth_type_connection = 0x00;
+		} else if( strcmp(value,"server") == 0 ){
+			cfg->eth_type_connection = 0x01;
+		} else {
 			printf("ERROR (config): %d: bad option \"%s\" value \"%s\"\n",lineno, option, value);
 			return -1;
 		}

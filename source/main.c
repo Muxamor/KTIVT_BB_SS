@@ -158,45 +158,119 @@ static void pabort(const char *s){
 	printf("Start Eth connect \n");// сделать запись в лог
 #endif
 
-	    int sock, n;
-	    struct sockaddr_in addr;
+	    struct sockaddr_storage far_client_addr;
+	    socklen_t far_addr_size;
+
+	    int sock, sock_ser, n;
+	    //struct sockaddr_in addr;
 	    struct addrinfo *res, *t;
 	    struct addrinfo hints = { 0 };
 
-	  //  if( argc < 3 ){
-	    //    printf("Need server name and port\n");// сделать запись в лог
-	     //   exit(1);
-	    //}
+	    if(cfg_brd_old.eth_type_connection == 0x00){ // client mode type connection
 
-	    hints.ai_family   = AF_UNSPEC;
-	    hints.ai_socktype = SOCK_STREAM;
-	    n = getaddrinfo(cfg_brd_old.dname, cfg_brd_old.port, &hints, &res);
+	    	memset(&hints, 0, sizeof hints);
 
-	    if (n < 0) {
-	        fprintf(stderr, "%s for %s:%s\n", gai_strerror(n), cfg_brd_old.dname, cfg_brd_old.port);// сделать запись в лог
-	        printf("ERROR(%s:%d): getaddrinfo failed!\n",__FILE__,__LINE__);// сделать запись в лог
-	        exit(1);
-	    }
+	    	hints.ai_family   = AF_UNSPEC;
+	    	hints.ai_socktype = SOCK_STREAM;
 
-	    for (t = res; t; t = t->ai_next) {
-	        sock = socket(t->ai_family, t->ai_socktype, t->ai_protocol);
-	        if (sock >= 0) {
-	            if (connect(sock, t->ai_addr, t->ai_addrlen) == 0){
-	                break;
-	            }
-	            close(sock);
-	            sock = -1;
-	        }
-	    }
+	    	n = getaddrinfo(cfg_brd_old.dname, cfg_brd_old.port, &hints, &res);
 
-	    freeaddrinfo(res);
+	    	if (n < 0) {
+	    		fprintf(stderr, "%s for %s:%s\n", gai_strerror(n), cfg_brd_old.dname, cfg_brd_old.port);// сделать запись в лог
+	    		printf("ERROR(%s:%d): getaddrinfo failed!\n",__FILE__,__LINE__);// сделать запись в лог
+	    		exit(1);
+	    	}
 
-	    if( sock == -1 ){
-	    	printf("Eth connect ERROR!\n");// сделать запись в лог
+	    	for (t = res; t; t = t->ai_next) {
+	    		sock = socket(t->ai_family, t->ai_socktype, t->ai_protocol);
+	    		if (sock >= 0) {
+	    			if (connect(sock, t->ai_addr, t->ai_addrlen) == 0){
+	    				break;
+	    			}
+	    			close(sock);
+	    			sock = -1;
+	    		}
+	    	}
+
+	    	freeaddrinfo(res);
+
+	    	if( sock == -1 ){
+	    		printf("Eth connect client mode ERROR!\n");// сделать запись в лог
+	    		exit(1);
+	    	}
+
+	    	printf("Eth client mode connect success!\n"); // сделать запись в лог
+
+	    }else if( cfg_brd_old.eth_type_connection == 0x01 ){ // server mode type connection
+
+	    	memset(&hints, 0, sizeof hints);
+	    	hints.ai_family   = AF_UNSPEC;
+	    	hints.ai_socktype = SOCK_STREAM;
+	    	hints.ai_flags = AI_PASSIVE;
+
+	    	n = getaddrinfo( NULL, cfg_brd_old.port, &hints, &res);
+
+	    	if (n < 0) {
+	    		fprintf(stderr, "%s for NULL :%s\n", gai_strerror(n), cfg_brd_old.port);// сделать запись в лог
+	    		printf("ERROR(%s:%d): getaddrinfo failed!\n",__FILE__,__LINE__);// сделать запись в лог
+	    		exit(1);
+	    	}
+
+	    	sock_ser = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+
+	    	if( sock_ser < 0 ){
+	    		printf("ERROR(%s:%d): getaddrinfo failed!\n",__FILE__,__LINE__);
+	    		close(sock_ser);
+	    		close(sock);
+	    		freeaddrinfo(res);
+	    		exit(1);
+	    	}
+
+	    	n = bind(sock_ser, res->ai_addr, res->ai_addrlen);
+			if( n < 0 ){
+				printf("ERROR(%s:%d): getaddrinfo failed!\n",__FILE__,__LINE__);
+				close(sock_ser);
+				close(sock);
+				freeaddrinfo(res);
+				exit(1);
+			}
+
+	    	n = listen(sock_ser, 0);
+	    	if( n < 0 ){
+	    		printf("ERROR(%s:%d): getaddrinfo failed!\n",__FILE__,__LINE__);
+	    		close(sock_ser);
+	    		close(sock);
+	    		freeaddrinfo(res);
+	    		exit(1);
+	    	}
+
+	    	far_addr_size = sizeof far_client_addr;
+	    	sock = accept(sock_ser, (struct sockaddr *)&far_client_addr, &far_addr_size);
+	    	if( sock < 0 ){
+	    		printf("ERROR(%s:%d): getaddrinfo failed!\n",__FILE__,__LINE__);
+	    		close(sock_ser);
+	    		close(sock);
+	    		freeaddrinfo(res);
+	    		exit(1);
+	    	}
+
+
+
+	    	printf("Eth: Client connect success!\n"); // сделать запись в лог
+
+	    	char hoststr[NI_MAXHOST];
+	    	char portstr[NI_MAXSERV];
+
+	    	n = getnameinfo((struct sockaddr *)&far_client_addr, far_addr_size, hoststr, sizeof(hoststr), portstr, sizeof(portstr), NI_NUMERICHOST | NI_NUMERICSERV);
+	    	if (n == 0){
+	    		printf("New connection IP: %s Port: %s \n", hoststr, portstr);
+	    	}
+
+	    	freeaddrinfo(res);
+	    }else{
+	    	printf("ERROR(%s:%d): getaddrinfo failed!\n",__FILE__,__LINE__);
 	    	exit(1);
 	    }
-
-	    printf("Eth connect success!\n"); // сделать запись в лог
 
     uint8_t buf[4] = { 0 };
     uint32_t tipe_eth_rx_parsel;
@@ -238,7 +312,7 @@ while(1){
 
 	if( pfd.revents & POLLHUP ){
 
-		printf("Server close POLLHUP\n");
+		printf("Far device close POLLHUP\n");
 		close(sock);
 		break;
 	}
@@ -272,7 +346,7 @@ while(1){
 
 		}else{
 #ifdef DEBUG_MODE
-			printf("Server close Eth connection\n");
+			printf("Far device close Eth connection\n");
 #endif
 			close(sock);
 			break;

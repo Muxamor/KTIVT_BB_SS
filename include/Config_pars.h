@@ -33,7 +33,9 @@ struct settings_brd{
 	uint8_t sync_src;
 	uint8_t data_recv;
 	uint8_t num_file_earthquake_emul;
+	uint8_t eth_type_connection;
 	int fd_earthquake_emul;
+
 };
 
 
