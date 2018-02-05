@@ -107,7 +107,7 @@ static void pabort(const char *s){
     }
 
     // read configure file
-    ret = parse_config(fd_config_file, &cfg_brd_old, cfg_ch_old, 3);
+    ret =  parse_config(fd_config_file, &cfg_brd_old, cfg_ch_old, 3);
     fclose(fd_config_file);
 	if (ret==-1){
 		perror("Config file no correct"); // сдлеать запись в лог
@@ -154,123 +154,14 @@ static void pabort(const char *s){
     	printf("massive not same\n");
     }
 */
-#ifdef DEBUG_MODE
-	printf("Start Eth connect \n");// сделать запись в лог
-#endif
 
-	    struct sockaddr_storage far_client_addr;
-	    socklen_t far_addr_size;
-
-	    int sock, sock_ser, n;
-	    //struct sockaddr_in addr;
-	    struct addrinfo *res, *t;
-	    struct addrinfo hints = { 0 };
-
-	    if(cfg_brd_old.eth_type_connection == 0x00){ // client mode type connection
-
-	    	memset(&hints, 0, sizeof hints);
-
-	    	hints.ai_family   = AF_UNSPEC;
-	    	hints.ai_socktype = SOCK_STREAM;
-
-	    	n = getaddrinfo(cfg_brd_old.dname, cfg_brd_old.port, &hints, &res);
-
-	    	if (n < 0) {
-	    		fprintf(stderr, "%s for %s:%s\n", gai_strerror(n), cfg_brd_old.dname, cfg_brd_old.port);// сделать запись в лог
-	    		printf("ERROR(%s:%d): getaddrinfo failed!\n",__FILE__,__LINE__);// сделать запись в лог
-	    		exit(1);
-	    	}
-
-	    	for (t = res; t; t = t->ai_next) {
-	    		sock = socket(t->ai_family, t->ai_socktype, t->ai_protocol);
-	    		if (sock >= 0) {
-	    			if (connect(sock, t->ai_addr, t->ai_addrlen) == 0){
-	    				break;
-	    			}
-	    			close(sock);
-	    			sock = -1;
-	    		}
-	    	}
-
-	    	freeaddrinfo(res);
-
-	    	if( sock == -1 ){
-	    		printf("Eth connect client mode ERROR!\n");// сделать запись в лог
-	    		exit(1);
-	    	}
-
-	    	printf("Eth client mode connect success!\n"); // сделать запись в лог
-
-	    }else if( cfg_brd_old.eth_type_connection == 0x01 ){ // server mode type connection
-
-	    	memset(&hints, 0, sizeof hints);
-	    	hints.ai_family   = AF_UNSPEC;
-	    	hints.ai_socktype = SOCK_STREAM;
-	    	hints.ai_flags = AI_PASSIVE;
-
-	    	n = getaddrinfo( NULL, cfg_brd_old.port, &hints, &res);
-
-	    	if (n < 0) {
-	    		fprintf(stderr, "%s for NULL :%s\n", gai_strerror(n), cfg_brd_old.port);// сделать запись в лог
-	    		printf("ERROR(%s:%d): getaddrinfo failed!\n",__FILE__,__LINE__);// сделать запись в лог
-	    		exit(1);
-	    	}
-
-	    	sock_ser = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
-
-	    	if( sock_ser < 0 ){
-	    		printf("ERROR(%s:%d): getaddrinfo failed!\n",__FILE__,__LINE__);
-	    		close(sock_ser);
-	    		close(sock);
-	    		freeaddrinfo(res);
-	    		exit(1);
-	    	}
-
-	    	n = bind(sock_ser, res->ai_addr, res->ai_addrlen);
-			if( n < 0 ){
-				printf("ERROR(%s:%d): getaddrinfo failed!\n",__FILE__,__LINE__);
-				close(sock_ser);
-				close(sock);
-				freeaddrinfo(res);
-				exit(1);
-			}
-
-	    	n = listen(sock_ser, 0);
-	    	if( n < 0 ){
-	    		printf("ERROR(%s:%d): getaddrinfo failed!\n",__FILE__,__LINE__);
-	    		close(sock_ser);
-	    		close(sock);
-	    		freeaddrinfo(res);
-	    		exit(1);
-	    	}
-
-	    	far_addr_size = sizeof far_client_addr;
-	    	sock = accept(sock_ser, (struct sockaddr *)&far_client_addr, &far_addr_size);
-	    	if( sock < 0 ){
-	    		printf("ERROR(%s:%d): getaddrinfo failed!\n",__FILE__,__LINE__);
-	    		close(sock_ser);
-	    		close(sock);
-	    		freeaddrinfo(res);
-	    		exit(1);
-	    	}
-
-
-
-	    	printf("Eth: Client connect success!\n"); // сделать запись в лог
-
-	    	char hoststr[NI_MAXHOST];
-	    	char portstr[NI_MAXSERV];
-
-	    	n = getnameinfo((struct sockaddr *)&far_client_addr, far_addr_size, hoststr, sizeof(hoststr), portstr, sizeof(portstr), NI_NUMERICHOST | NI_NUMERICSERV);
-	    	if (n == 0){
-	    		printf("New connection IP: %s Port: %s \n", hoststr, portstr);
-	    	}
-
-	    	freeaddrinfo(res);
-	    }else{
-	    	printf("ERROR(%s:%d): getaddrinfo failed!\n",__FILE__,__LINE__);
-	    	exit(1);
-	    }
+	int sock;
+	sock = eth_connection( cfg_brd_old );
+	if( sock < 0 ){
+		printf("ERROR(%s:%d): eth_connection failed!\n",__FILE__,__LINE__);
+		close(sock);
+		exit(1);
+	}
 
     uint8_t buf[4] = { 0 };
     uint32_t tipe_eth_rx_parsel;

@@ -11,6 +11,13 @@
 #include <stdint.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netdb.h>
+#include <poll.h>
+#include <errno.h>
+
 #include "../include/GPIO_SS.h"
 #include "../include/SPI_SS.h"
 #include "../include/BB_Setup.h"
@@ -747,5 +754,146 @@ int send_earthquake_emul_data_to_Eth(int fd_socket, struct settings_brd cfg_brd)
 		printf("Send to eth data Earthquake Emulation ch:%d size: %d \n", i+1, read_size+8);
 	}
 	return 0;
+}
+
+
+
+
+int eth_connection (struct settings_brd cfg_brd){
+
+	    int sock, sock_ser, n;
+	    //struct sockaddr_in addr;
+	    struct sockaddr_storage far_client_addr;
+	    socklen_t far_addr_size;
+	    struct addrinfo *res, *t;
+	    struct addrinfo hints = { 0 };
+
+	    if(cfg_brd.eth_type_connection == 0x00){ // client mode type connection
+
+#ifdef DEBUG_MODE
+	    	printf("Start Eth connection. Client mode \n");// сделать запись в лог
+#endif
+
+	    	//memset(&hints, 0, sizeof hints);
+
+	    	hints.ai_family   = AF_UNSPEC;
+	    	hints.ai_socktype = SOCK_STREAM;
+
+	    	n = getaddrinfo(cfg_brd.dname, cfg_brd.port, &hints, &res);
+
+	    	if (n < 0) {
+	    		fprintf(stderr, "%s for %s:%s\n", gai_strerror(n), cfg_brd.dname, cfg_brd.port);// сделать запись в лог
+	    		printf("ERROR(%s:%d): getaddrinfo failed!\n",__FILE__,__LINE__);// сделать запись в лог
+	    		return -1;
+	    	}
+
+	    	for (t = res; t; t = t->ai_next) {
+	    		sock = socket(t->ai_family, t->ai_socktype, t->ai_protocol);
+	    		if (sock >= 0) {
+	    			if (connect(sock, t->ai_addr, t->ai_addrlen) == 0){
+	    				break;
+	    			}
+	    			close(sock);
+	    			sock = -1;
+	    		}
+	    	}
+
+	    	freeaddrinfo(res);
+
+	    	if( sock == -1 ){
+	    		printf("Eth connect client mode ERROR!\n");// сделать запись в лог
+	    		return -1;
+	    	}
+#ifdef DEBUG_MODE
+	    	printf("Eth client mode connect success!\n"); // сделать запись в лог
+#endif
+
+	    }else if( cfg_brd.eth_type_connection == 0x01 ){ // server mode type connection
+
+
+#ifdef DEBUG_MODE
+	    	printf("Start Eth connection. Server mode \n");// сделать запись в лог
+#endif
+
+	    //	memset(&hints, 0, sizeof hints);
+
+	    	hints.ai_family   = AF_INET;//AF_UNSPEC;
+	    	hints.ai_socktype = SOCK_STREAM;
+	    	hints.ai_flags = AI_PASSIVE;
+
+	    	n = getaddrinfo( NULL, cfg_brd.port, &hints, &res);
+
+	    	if (n < 0) {
+	    		fprintf(stderr, "%s for NULL :%s\n", gai_strerror(n), cfg_brd.port);// сделать запись в лог
+	    		printf("ERROR(%s:%d): getaddrinfo failed!\n",__FILE__,__LINE__);// сделать запись в лог
+	    		return -1;
+	    	}
+
+	    	sock_ser = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+	    	if( sock_ser < 0 ){
+	    		printf("ERROR(%s:%d): socket failed!\n",__FILE__,__LINE__);
+	    		sock_ser = -1;
+	            goto error_con;
+	    	}
+
+	    	n = bind(sock_ser, res->ai_addr, res->ai_addrlen);
+			if( n < 0 ){
+				printf("ERROR(%s:%d): bind failed!\n",__FILE__,__LINE__);
+				sock_ser = -1;
+				goto error_con;
+			}
+
+	    	n = listen(sock_ser, 0);
+	    	if( n < 0 ){
+	    		printf("ERROR(%s:%d): listen failed!\n",__FILE__,__LINE__);
+	    		sock_ser = -1;
+	    		goto error_con;
+	    	}
+	    /*	!!!!!!!!!!!!!!!!!! Спросить у Темы как лучше сделать
+	    	struct pollfd psfd;
+	    	int timeout = 5000; // in milliseconds
+	    	psfd.fd = sock_ser;
+	    	psfd.events = POLLIN;
+	    	psfd.revents = 0;
+
+	    	if( ( n = poll(psfd, 1, timeout) ) < 0 ){
+	    		if( n == EINTR ){
+	    			n = 0;
+	    		} else {
+	    			printf("Fatal error in poll: %s:%d\n", __FILE__, __LINE__);
+	    			sock_ser = -1;
+	    			goto error_con;
+	    		}
+	    	}
+	    	*/
+	    	far_addr_size = sizeof far_client_addr;
+	    	sock = accept(sock_ser, (struct sockaddr *)&far_client_addr, &far_addr_size);
+	    	if( sock < 0 ){
+	    		printf("ERROR(%s:%d): accept failed!\n",__FILE__,__LINE__);
+	    		sock_ser = -1;
+	    		sock = -1;
+	    	}
+
+	    error_con:
+			freeaddrinfo(res);
+
+	    	if(sock_ser == -1 || sock == -1){
+	    		return -1;
+	    	}
+
+#ifdef DEBUG_MODE
+	    	char hoststr[NI_MAXHOST];
+	    	char portstr[NI_MAXSERV];
+
+	    	n = getnameinfo((struct sockaddr *)&far_client_addr, far_addr_size, hoststr, sizeof(hoststr), portstr, sizeof(portstr), NI_NUMERICHOST | NI_NUMERICSERV);
+	    	if (n == 0){
+	    		printf("New connection IP: %s Port: %s \n", hoststr, portstr);
+	    	}
+#endif
+
+	    }
+
+	    return sock;
+
 }
 
